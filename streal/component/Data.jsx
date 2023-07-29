@@ -25,7 +25,8 @@ const Data = () => {
   collateralInUSD,
   mintedStreal,
   USDvalue,
-  userDataUSDValue
+  userDataUSDValue,
+  snappedBalance
 
   } = useContext(StrealContext);
 
@@ -47,6 +48,7 @@ const Data = () => {
         <div>Minted streal: {mintedStreal}</div> 
         <div>user Data: {userData}</div>      
         <div>fiat: ${userDataUSDValue}</div>      
+        <div>Snapshot: {snappedBalance} streal</div>      
 
       </div>
     )

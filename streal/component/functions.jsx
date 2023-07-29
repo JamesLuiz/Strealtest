@@ -28,7 +28,9 @@ const functions = () => {
         transfer,
         vote,
         transferOwnership,
-        withdraw
+        withdraw,
+        snapshot,
+        balanceOfAtSnapshot
 
     } = useContext(StrealContext);
 
@@ -75,6 +77,16 @@ const functions = () => {
              getUserData("0x39b165389b3a0A810843376867Cced4564fA9F69")}
             >
             User data
+        </button>
+       <button onClick={() => 
+             snapshot()}
+            >
+            Snap shot
+        </button>
+       <button onClick={() => 
+             balanceOfAtSnapshot("0x39b165389b3a0A810843376867Cced4564fA9F69")}
+            >
+            Snap shot balance
         </button>
        </div>
 

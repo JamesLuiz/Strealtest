@@ -736,7 +736,7 @@ export const StrealProvider = ({children}) => {
   }
 
   //---->  this function is for voting proposals made by the team, basically for feed back
-  const vote = async(address) => {
+  const vote = async(address1) => {
     
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
@@ -751,7 +751,7 @@ export const StrealProvider = ({children}) => {
       const contract = fetchContract(signer);
 
       // call the approve function
-      const data = await contract.vote(address);
+      const data = await contract.vote(address1);
       const receipt = data.wait();
       return receipt;
     }  
@@ -763,7 +763,7 @@ export const StrealProvider = ({children}) => {
   }
 
   //----> this function allows the owner to transfer ownership to another address, in case of purchase or anything
-  const transferOwnership = async(address) => {
+  const transferOwnership = async(address2) => {
     
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
@@ -778,7 +778,7 @@ export const StrealProvider = ({children}) => {
       const contract = fetchContract(signer);
 
       // call the approve function
-      const data = await contract.transferOwnership(address);
+      const data = await contract.transferOwnership(address2);
       const receipt = data.wait();
       return receipt;
     }  
@@ -816,6 +816,75 @@ export const StrealProvider = ({children}) => {
    
   }
 
+  //----> this function takes the snapshot of all balances at a point tin time, could be helpful at airdrops.
+  const [snapShotID, setSnapShotID] = useState("")
+  const snapshot = async() => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
+
+
+      // call the approve function
+      const data = await contract.snapshot();
+      contract.on("Snapshot", (snapshotId, event) => {
+        const ID = snapshotId.toString();
+        console.log(`Snapshot ID: ${ID}`);
+        console.log(`Block number: ${event.blockNumber}`);
+        console.log(`Address that triggered the event: ${event.address}`);
+        setSnapShotID(ID)
+      });
+      const receipt = data.wait();
+      return receipt;
+
+      // Assume 'contract' is the instance of your ERC20Snapshot contract.
+
+
+    }  
+    } catch (error) {
+      console.error("could not snapshot, you're not the contract owner!");
+    }
+    
+   
+  }
+
+
+  //-----> this function returns balances snapshot at the current time
+  const [snappedBalance, setSnappedBalance] = useState("")
+  const balanceOfAtSnapshot = async(address3) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
+
+      // call the approve function
+      const data = await contract.balanceOfAt(address3, snapShotID);
+      const sum = data/1e18;
+      setSnappedBalance(sum);
+    }  
+    } catch (error) {
+      console.error("could not return snapshot balance!");
+    }
+    
+   
+  }
+
   const title = "hello functions"
   return (
     <StrealContext.Provider value={{
@@ -846,6 +915,8 @@ export const StrealProvider = ({children}) => {
       vote,
       transferOwnership,
       withdraw,
+      snapshot,
+      balanceOfAtSnapshot,
 
       //-----> data returned from helper functions
       votes,
@@ -859,6 +930,7 @@ export const StrealProvider = ({children}) => {
       collateralInUSD,
       mintedStreal,
       USDvalue,
+      snappedBalance,
 
 
 
