@@ -935,8 +935,8 @@
       ]
     },
     "C:\\Users\\USER\\streal\\contracts\\streal2.sol": {
-      "lastModificationDate": 1690559017167,
-      "contentHash": "b59b7254853314ebbc6bb74a8c0cac52",
+      "lastModificationDate": 1690762087930,
+      "contentHash": "36e431c91d473e9952b118a98364c6ed",
       "sourceName": "contracts/streal2.sol",
       "solcConfig": {
         "version": "0.8.18",

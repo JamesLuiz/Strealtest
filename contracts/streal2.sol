@@ -55,7 +55,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 
 contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, ReentrancyGuard {
     // state variables
-    uint256 public constant Liquidation_bonus = 10; // This means you get assets at a 10% discount when liquidating
     address[] public _collateralTokens; 
     uint256 private constant Additional_Feed_Precision = 1e10;
     uint256 private constant Feed_Precision = 1e18;
@@ -64,12 +63,12 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     address[] public supportedTokens;
     address[] public priceFeedAddress;
+    address[] public airdroppedAddresses;
     uint256 public airdrops = 100000000 * 1e18;
-    uint256 public supply = 200000000 * 1e18;
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-
-
-    // errors
+    uint256 private supply = 200000000 * 1e18;
+    uint256 public airdropLockTime;
+    uint256 public airdropLockTimeSet;
+    
     
 
     // mappings
@@ -81,10 +80,19 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     mapping (address => address) public priceFeed;
     mapping(address => uint256) public votes;
     mapping(address => address) public hasVoted;
+    mapping(address => uint256) public airdropTimes;
+    mapping(address => bool) public airdroppedAddress; 
     
 
     // event
     event collateralDeposited(address indexed user, address indexed token, uint256 amount);
+    event airdropped(address indexed user, uint256 amount);
+    event redeemedCollateral(address indexed user, uint256 amount);
+    event strealDeposited(address indexed user, uint256 amount);
+    event withdrawal(address indexed user, uint256 amount);
+    event voted(address indexed user);
+    event mintRewards(address indexed recipients);
+
 
     // modifiers
     modifier allowedToken (address token) {
@@ -114,7 +122,7 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
             0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046
         ];
         
-        require(supportedTokens.length == priceFeedAddress.length, "adress must be same length"); 
+        require(supportedTokens.length == priceFeedAddress.length); 
 
         for (uint i = 0; i < supportedTokens.length; i++) {
             priceFeed [supportedTokens[i]] = priceFeedAddress[i];
@@ -177,21 +185,26 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     }
 
    function depositStrealAndGetToken(uint256 amountStreal, address tokenCollateralAddress) public {
+        require(block.timestamp >= getUserStartTime(msg.sender)  + airdropLockTime, "time"); 
+        require(!airdroppedAddress[msg.sender], "airdrop");
         // Determine the decimal places based on the token type
         uint8 tokenDecimals = getDecimals(tokenCollateralAddress);
         // Calculate the equivalent amount of collateral tokens based on the Streal value
         uint256 equivalentAmountToReceive = amountStreal * 5 * (10 ** tokenDecimals);
         
-        uint256 amountFee = equivalentAmountToReceive * 2 / 100;
+        uint256 amountFee = equivalentAmountToReceive * 3 / 100;
         uint256 amountAfterFee = equivalentAmountToReceive - amountFee;
+        
+        uint256 leftOver = amountAfterFee / 10**tokenDecimals;
         // Ensure that the contract has enough of the desired token
-        require(IERC20(tokenCollateralAddress).balanceOf(address(this)) >= equivalentAmountToReceive, "Not enough tokens in contract");
+        require(IERC20(tokenCollateralAddress).balanceOf(address(this)) >= equivalentAmountToReceive);
         // Deduct the Streal from the user's balance
         burnStreal(amountStreal * 1e18);
         _mint(owner(), amountStreal * 1e18);
         // Transfer the fee to the contract owner and the remaining amount to the user
         IERC20(tokenCollateralAddress).transfer(owner(), amountFee);
         IERC20(tokenCollateralAddress).transfer(msg.sender, amountAfterFee);
+        emit strealDeposited(msg.sender, leftOver);
     }
 
 
@@ -199,29 +212,34 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         address tokenCollateralAddress,
         uint256 amountCollateral
     ) public {
+        require(block.timestamp >= getUserStartTime(msg.sender) + airdropLockTime, "time");
+        require(!airdroppedAddress[msg.sender], "airdrop");
 
         uint8 tokenDecimals = getDecimals(tokenCollateralAddress);
         uint256 amount = amountCollateral * (10**tokenDecimals);
         uint256 strealToBurn = calculateEquivalentAmountToMint(tokenCollateralAddress, amountCollateral);
         uint256 _amount = strealToBurn * 1e18; 
         // Calculate the fee
-        uint256 fee = amount * 3 / 100;
+        uint256 fee = amount * 5 / 100;
+
         // Ensure that the user has enough collateral deposited
-        require(_collateralDeposited[msg.sender][tokenCollateralAddress] >= amountCollateral, "Not enough collateral deposited");
+        require(_collateralDeposited[msg.sender][tokenCollateralAddress] >= amount);
         // Deduct the collateral from the user's deposited collateral
-        _collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        _collateralDeposited[msg.sender][tokenCollateralAddress] -= amount;
         // Deduct the fee from the collateral
-        uint256 balances =  amount -= fee;
+        uint256 balances =  amount -= fee; 
+        uint256 leftOver = balances / 10**tokenDecimals;
         uint256 contractBalance = IERC20(tokenCollateralAddress).balanceOf(address(this));
-        require(contractBalance >= balances, "Not enough tokens in contract");
+        require(contractBalance >= balances);
         // Transfer the collateral to the user
         bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, balances);
 
-        require(success, "Transfer of collateral failed");
+        require(success);
         IERC20(tokenCollateralAddress).transfer(owner(), fee);
        
         // Burn the Streal tokens
         burnStreal(_amount);
+        emit redeemedCollateral(msg.sender, leftOver);
         
     }
 
@@ -235,7 +253,7 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     function mintStreal(uint256 amountToMint) private moreThanZero(amountToMint){
        mintedStreal[msg.sender] += amountToMint;
        bool minted = mint(msg.sender, amountToMint);
-        require(minted, "mint failed, check mintStreal function");
+        require(minted);
     }
     
 
@@ -302,7 +320,9 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
             if (balances > 0) {
                 token.transfer(msg.sender, balances);
             }
+            emit withdrawal(msg.sender, balances);
         }
+       
     }
 
    function balance() public view returns (uint256[] memory) {
@@ -316,7 +336,7 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         return balances;
     }
 
-    function snapshot() public onlyOwner {
+    function snapshot() public onlyOwner { 
         _snapshot();
     }
 
@@ -326,14 +346,14 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     function burn(uint256 _amount) public override{
         uint256 balances = balanceOf(msg.sender);
         
-        require(_amount > 0, "amount must be more than zero");
+        require(_amount > 0);
         require (balances >= _amount, "burnable exceeds balance"); 
         super.burn(_amount);
     }
 
     function burnForCommerce(uint256 _amount) public  onlyOwner moreThanZero(_amount) nonReentrant {
         uint256 balances = balanceOf(msg.sender);
-        require (balances >= _amount, "burnable exceeds balance"); 
+        require (balances >= _amount); 
         super.burn(_amount * 1e18);
     }
 
@@ -341,7 +361,7 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     function mint(address to, uint256 amount) internal nonReentrant returns (bool) {
 
         require (to != address(0), "invalid address");
-        require (amount >= 0, "amount must be more than zero");
+        require (amount >= 0);
        _mint(to, amount);
        return true;
     }
@@ -350,21 +370,21 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     function mintForCommerce(address to, uint256 amount) public nonReentrant onlyOwner returns (bool) {
 
        to = msg.sender; 
-        require (amount >= 0, "amount must be more than zero");
+        require (amount >= 0);
        _mint(to, amount * 1e18);
        return true;
     }
 
     // this funcion allows new tokens to be minted into the adddresss of various users as redwards
     function mintReward(address[] memory recipients, uint256[] memory amounts) public onlyOwner nonReentrant returns (bool) {
-        require(recipients.length == amounts.length, "recipients and amounts arrays must have the same length");
+        require(recipients.length == amounts.length);
 
         for (uint256 i = 0; i < recipients.length; i++) {
             address to = recipients[i];
             uint256 amount = amounts[i];
-            require(to != address(0), "invalid address");
-            require(amount >= 0, "amount must be more than zero");
-
+            require(to != address(0));
+            require(amount >= 0);
+            emit mintRewards(recipients[i]);
             _mint(to, amount * 1e18);
         }
         return true;
@@ -382,31 +402,55 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     }
 
 
+    function getUserStartTime(address user) public view returns (uint256) {
+        if (airdroppedAddress[user]){
+            // If the user is in the airdrop list, use the airdrop time
+            return airdropTimes[user];
+        } else {
+            // If the user is not in the airdrop list, use the time when the airdropLockTime was set
+            return airdropLockTimeSet;
+        }
+    }
+
+
+   function setAirdropLockTime(uint256 _airdropLockTime) public onlyOwner {
+        airdropLockTime = _airdropLockTime;
+        airdropLockTimeSet = block.timestamp;
+    }
+
+    
+    
     function airdrop(address[] memory recipients, uint256[] memory values) public onlyOwner nonReentrant returns (bool success) {
-        require(recipients.length == values.length, "Invalid input arrays");
+        require(recipients.length == values.length);
 
         uint256 totalValue = 0;
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(recipients[i] != address(0), "Invalid recipient address");
+            require(recipients[i] != address(0));
             totalValue += values[i];
         }
 
-        require(totalValue <= airdrops, "Insufficient airdrop balance");
+        require(totalValue <= airdrops);
  
         for (uint256 i = 0; i < recipients.length; i++) {
             transfer(recipients[i], values[i] * (10 ** 18));
+            airdroppedAddresses.push(recipients[i]);
+            airdroppedAddress[recipients[i]] = true;
+            emit airdropped(recipients[i], values[i] * 1e18);
         }
 
+        for (uint256 i = 0; i < recipients.length; i++) {
+            airdropTimes[recipients[i]] = block.timestamp;
+        }
         airdrops -= totalValue * 1e18;
-
         return true;
     }
 
     function vote(address candidate) public returns (bool success) {
-        require(candidate != msg.sender, "You cannot vote for yourself");
-        require(hasVoted[msg.sender] != candidate, "You have already voted for this candidate");
+        require(candidate != msg.sender);
+        require(hasVoted[msg.sender] != candidate);
         votes[candidate] += 1;
         hasVoted[msg.sender] = candidate;
+        emit voted(candidate);
         return true;
     }
 }

@@ -16,7 +16,7 @@ export const StrealContext = React.createContext();
 export const StrealProvider = ({children}) => {
   const [data, setAccounts] = useState("")
   const [name, setName] = useState("")
-  const [balance, setBalance] = useState("")
+  const [balances, setBalance] = useState("")
   const [symbol, setSymbol] = useState("")
   const [airdrop, setAirdrop] = useState("");
   const [totalSupply, setTotalSupply] = useState("");
@@ -27,79 +27,79 @@ export const StrealProvider = ({children}) => {
   //---> connecting wallet
   // moved connectWallet inside useEffect
 
-// ... other imports
+  // ... other imports
 
-  useEffect(() => {
-    
-    const connectWallet = async () => {
-      try {
-        if (!window.ethereum) return console.log("Install MetaMask");
-        // if not connected, request connection
-        if (!window.ethereum.isConnected()) {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
+    useEffect(() => {
+      
+      const connectWallet = async () => {
+        try {
+          if (!window.ethereum) return console.log("Install MetaMask");
+          // if not connected, request connection
+          if (!window.ethereum.isConnected()) {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+          }
+          
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          const address = await signer.getAddress();
+
+          // set the account in state
+          setAccounts(address);
+          console.log(address)
+          
+          // fetch the contract using signer
+          const contract = fetchContract(signer);
+          
+          // here the name of the contract is fetched (assuming contract has a public `name` method)
+          const contractName = await contract.name(); 
+          setName(contractName);  // do something with the name
+
+          const tokenBalance = await contract.balanceOf(address);
+          const convert = tokenBalance/1e18;
+          setBalance(convert);
+
+          const xyz = await contract.symbol();
+          setSymbol(xyz);
+
+          const airdropBalance = await contract.airdrops();
+          const math = airdropBalance/1e18;
+          setAirdrop(math);
+
+          const supply = await contract.totalSupply()
+          let returnData = supply/1e18;
+          setTotalSupply(returnData);
+
+          // usdc balance
+          const collateralDeposit = await contract.balance()
+          setCollateralBalance([collateralDeposit].toString());
+          const collatera_1 = collateralDeposit[1]/1e6;
+          setUSDC(collatera_1);
+
+          // usdt balance
+          const collateral_2 = collateralDeposit[0]/1e6;
+          setUSDT(collateral_2);
+
+          // DAI balance
+          const collateral_3 = collateralDeposit[2]/1e18;
+          setDAI(collateral_3);
+          
+          
+        } catch (error) {
+          console.error("Failed to connect wallet and fetch contract", error);
         }
-        
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-
-        // set the account in state
-        setAccounts(address);
-        console.log(address)
-        
-        // fetch the contract using signer
-        const contract = fetchContract(signer);
-        
-        // here the name of the contract is fetched (assuming contract has a public `name` method)
-        const contractName = await contract.name(); 
-        setName(contractName);  // do something with the name
-
-        const tokenBalance = await contract.balanceOf(address);
-        const convert = tokenBalance/1e18;
-        setBalance(convert);
-
-        const xyz = await contract.symbol();
-        setSymbol(xyz);
-
-        const airdropBalance = await contract.airdrops();
-        const math = airdropBalance/1e18;
-        setAirdrop(math);
-
-        const supply = await contract.totalSupply()
-        let returnData = supply/1e18;
-        setTotalSupply(returnData);
-
-        // usdc balance
-        const collateralDeposit = await contract.balance()
-        setCollateralBalance([collateralDeposit].toString());
-        const collatera_1 = collateralDeposit[1]/1e6;
-        setUSDC(collatera_1);
-
-        // usdt balance
-        const collateral_2 = collateralDeposit[0]/1e6;
-        setUSDT(collateral_2);
-
-        // DAI balance
-        const collateral_3 = collateralDeposit[2]/1e18;
-        setDAI(collateral_3);
-        
-        
-      } catch (error) {
-        console.error("Failed to connect wallet and fetch contract", error);
-      }
-    };
-    connectWallet();
+      };
+      connectWallet();
 
 
-    // listening for account change
-    window.ethereum.on('accountsChanged', (accounts) => {
-      setAccounts(accounts[0]);
-    });
+      // listening for account change
+      window.ethereum.on('accountsChanged', (accounts) => {
+        setAccounts(accounts[0]);
+      });
 
-  }, []);
+    }, []);
+
 
   //-----> votes this function handles the vote counts
-  const [votes, setVotes] = useState(null)
   const getVotes = async(_address) => {
     
     try {
@@ -126,7 +126,7 @@ export const StrealProvider = ({children}) => {
 
   //-----> this function returns the USD value of any token
   const [USDvalue, setUSDvalue] = useState('')
-  const getUSDvalue = async(_tokeAddress, amount) => {
+  const getUSDvalue = async(_tokenAddress, amount) => {
     
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
@@ -139,8 +139,8 @@ export const StrealProvider = ({children}) => {
       
       // fetch the contract using signer
       const contract = fetchContract(signer);
-      const data = await contract.votes(_tokenAddress, amount);
-      const sum = voteCount.toString();
+      const data = await contract.getUsdValue(_tokenAddress, amount);
+      const sum = data.toString();
       setUSDvalue(sum);
     }  
     } catch (error) {
@@ -325,8 +325,10 @@ export const StrealProvider = ({children}) => {
       // fetch the contract using signer
       const contract = fetchContract(signer);
       const data = await contract.getAccountCollateralValueInUsd(adressUser);
-      const sum = data.tostring() 
-      setCollateralInUSD(sum);
+      const sum = data.toNumber()
+      const final = sum/1e6
+      setCollateralInUSD(final);
+
     }  
     } catch (error) {
       console.error("could not fetch amountEquivalent")
@@ -363,6 +365,8 @@ export const StrealProvider = ({children}) => {
 
 
   //-----> thisfunction is called by the owner to airdrop users
+  const [airdropDataAmount, setAirdropData] = useState("")
+  const [airdropDataUser, setAirdropDataUser] = useState("")
   const airdropUsers = async(recipients, values) => {
     
     try {
@@ -394,6 +398,17 @@ export const StrealProvider = ({children}) => {
       if (receipt) {
         console.log(receipt);
       }
+      contract.on("airdropped", (recipient, _amount, event) => {
+        setAirdropDataUser(recipient);
+        let amount = _amount;
+        const sum = amount/1e18;
+        setAirdropData(sum)
+        console.log("Recipient: ", recipient);
+        console.log("Amount: ", amount.toString());
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
+    
       // Return the transaction receipt
       return receipt;
     }  
@@ -402,8 +417,12 @@ export const StrealProvider = ({children}) => {
     }
   }
 
-    //-------> this function approves another user to spend your token on your behalf
-  const approve = async(addressSpender, amount) => {
+  // this function allows users to approve tokens to be spent on their behalf
+  const [ApprovedAddress, setApprovedAddress] = useState("");
+  const [ApprovedAmount, setApprovedAmount] = useState("")
+  const [txHash, setTxHash] = useState("");
+
+  const approval = async(spenderAddress, amount) => {
     
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
@@ -418,17 +437,27 @@ export const StrealProvider = ({children}) => {
       const contract = fetchContract(signer);
 
       // call the approve function
-      const data = await contract.approve(addressSpender, amount * 1e18);  
+      const data = await contract.approve(spenderAddress, amount * 1e18);
       const receipt = data.wait();
+      contract.on("Approval", (_, spender, amount, event) => {
+        setApprovedAddress(spender);
+        setTxHash(event.transactionHash);
+        const data = amount/1e18;
+        setApprovedAmount(data);
+        console.log("Recipient: ", spender);
+        console.log("Amount: ", data);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
+    
       return receipt;
     }  
     } catch (error) {
-      console.error("cannot approve, please check inputs")
+      console.error("could not tranfer, check if your spender is approved");
     }
     
    
   }
-
   //-----> this function allows only yhe contract owner to burn specific amount of streal
   const burnForCommerce = async(amount) => {
     
@@ -457,7 +486,7 @@ export const StrealProvider = ({children}) => {
   }
 
   //-----> this function allows streal to be burned from other addresses
-  const burnFrom = async(addressUser, amount) => {
+  const burnFrom = async(addressUser, _amount) => {
     
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
@@ -470,9 +499,13 @@ export const StrealProvider = ({children}) => {
       
       // fetch the contract using signer
       const contract = fetchContract(signer);
+      
+      const amount = _amount * 1e18;
 
       // call the approve function
+      await contract.approve(addressUser, amount);
       const data = await contract.burnFrom(addressUser, amount);
+
       const receipt = data.wait();
       return receipt;
     }  
@@ -538,7 +571,11 @@ export const StrealProvider = ({children}) => {
    
   }
 
+  
   //--------> this funtion allow users to get their tokens back and burn the streal the hold from circulation.
+  const [customerAddress, setCustomerAddress, ] = useState("")
+  const [amountRedeemed, setAmountRedeemed] = useState("")
+  const [txnHashRedeemedAmount, setTxnHashRedeemedAmount] = useState("")
   const redeemCollateralForStreal = async(tokenAddress, amount) => {
     
     try {
@@ -556,6 +593,16 @@ export const StrealProvider = ({children}) => {
       // call the approve function
       const data = await contract.redeemCollateralForStreal(tokenAddress, amount);
       const receipt = data.wait();
+      contract.on("redeemedCollateral", (spender, amount, event) => {
+        setCustomerAddress(spender);
+        setTxnHashRedeemedAmount(event.transactionHash);
+        const data = amount.toString();
+        setAmountRedeemed(data);
+        console.log("Recipient: ", spender);
+        console.log("Amount: ", amount.toString());
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
       return receipt;
     }  
     } catch (error) {
@@ -594,7 +641,8 @@ export const StrealProvider = ({children}) => {
   }
 
   //-------> this function allows you to deposit collateral and mint Streal
-  
+  const [txHashForCollateralDeposit, setTxHashForCollateralDeposit] = useState("")
+  const [ApprovedAmountCollateral, setApprovedAmountCollateral] = useState("")
   const depositCollateralAndMintStreal = async(tokenAddress,contractAddress, amount) => {
     
     try {
@@ -610,13 +658,16 @@ export const StrealProvider = ({children}) => {
       const contract = fetchContract(signer);
 
       // call the approve function
-       // Create a contract object for the token
-        const tokenContract = new ethers.Contract(
-          tokenAddress,
-          // The ERC20 ABI (Application Binary Interface) allows us to call methods from any ERC20 contract
-          ["function approve(address to, uint256 value) public returns(bool)"],
-          signer
-      );
+    // Create a contract object for the token
+      const tokenContract = new ethers.Contract(
+      tokenAddress,
+      [
+          "function approve(address to, uint256 value) public returns(bool)",
+          "function decimals() view returns(uint8)"
+      ],
+      signer
+    );
+    
 
       // Call the approve function on the token contract
       const approveTx = await tokenContract.approve(contractAddress, amount);
@@ -630,6 +681,20 @@ export const StrealProvider = ({children}) => {
       const data = await contract.depositCollateralAndMintStreal(tokenAddress, amount);
       const receipt = data.wait();
       console.log(receipt)
+      contract.on("collateralDeposited", (_, spender, amount, event) => {
+        // Define and invoke an async IIFE
+        (async () => {
+            setTxHashForCollateralDeposit(event.transactionHash);
+            const decimals = await tokenContract.decimals();
+            const sum = amount/ 10**decimals;
+            setApprovedAmountCollateral(sum.toString());
+            console.log("Recipient: ", spender);
+            console.log("Amount: ", sum.toString());
+            console.log("Event transaction: ", event.transactionHash);
+            console.log("Event block number: ", event.blockNumber);
+        })().catch(console.error); // Catch and log any errors
+      });
+    
       return receipt;
       
     }  
@@ -640,7 +705,9 @@ export const StrealProvider = ({children}) => {
    
   }
   //-----> this function allows you to return your streal to the circulating supply and then get your collateral will be refunded - platform fee. NB>(for vendors and big accounts).
-
+  const [depositor, setDepositor] = useState("")
+  const [amountToreceive, setAmountToreceive] = useState("")
+  const [depositTxHash, setDepositTxHash] = useState("")
   const depositStrealAndGetToken = async(amountStreal, TokenCollateralAddress) => {
     
     try {
@@ -658,6 +725,16 @@ export const StrealProvider = ({children}) => {
       // call the approve function
       const data = await contract.depositStrealAndGetToken(amountStreal, TokenCollateralAddress);
       const receipt = data.wait();
+      contract.on("strealDeposited", (spender, amount, event) => {
+        setDepositor(spender);
+        setDepositTxHash(event.transactionHash);
+        const data = amount.toString();
+        setAmountToreceive(data);
+        console.log("Recipient: ", spender);
+        console.log("Amount: ", data);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
       return receipt;
     }  
     } catch (error) {
@@ -669,6 +746,8 @@ export const StrealProvider = ({children}) => {
 
 
   //------> this function allows the contract owner to mint reward to users
+  const [recipientAddresses, setRecipientAddresses] = useState("")
+  const [mintRewardTxHash, setMintRewardTxHash] = useState("")
   const mintReward = async(recipients, values) => {
     
     try {
@@ -698,8 +777,16 @@ export const StrealProvider = ({children}) => {
       // Wait for the transaction to be mined
       const receipt = await tx.wait();
       if (receipt) {
-        console.log(receipt, "please wait...");
+        console.log(receipt, "successful!");
       }
+
+      contract.on("mintRewards", (spender, event) => {
+        setRecipientAddresses(spender);
+        setMintRewardTxHash(event.transactionHash);
+        console.log("Recipient: ", spender);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
       // Return the transaction receipt
       return receipt;
     }  
@@ -709,6 +796,9 @@ export const StrealProvider = ({children}) => {
   }
 
   //---> this function cand aid users transfer streal from their dashboard, they can also do it in their wallet
+  const [transferRecipient, setTransferRecipient] = useState("")
+  const [transferedAmount, setTransferedAmount] = useState("")
+  const [transferTxHash, setTransferTxHash] = useState("")
   const transfer = async(spenderAddress, amount) => {
     
     try {
@@ -726,6 +816,16 @@ export const StrealProvider = ({children}) => {
       // call the approve function
       const data = await contract.transfer(spenderAddress, amount * 1e18);
       const receipt = data.wait();
+      contract.on("Transfer", (_, spender, amount, event) => {
+        setTransferRecipient(spender);
+        setTransferTxHash(event.transactionHash);
+        const data = amount/1e18;
+        setTransferedAmount(data);
+        console.log("Recipient: ", spender);
+        console.log("Amount: ", amount.toString());
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
       return receipt;
     }  
     } catch (error) {
@@ -735,7 +835,11 @@ export const StrealProvider = ({children}) => {
    
   }
 
+
+
   //---->  this function is for voting proposals made by the team, basically for feed back
+  const [votedCandidate, setVotedCandidate] = useState("");
+  const [voteTxHash, setVoteTxHash] = useState("")
   const vote = async(address1) => {
     
     try {
@@ -753,6 +857,13 @@ export const StrealProvider = ({children}) => {
       // call the approve function
       const data = await contract.vote(address1);
       const receipt = data.wait();
+      contract.on("voted", (spender, event) => {
+        setVotedCandidate(spender);
+        setVoteTxHash(event.transactionHash);
+        console.log("Recipient: ", spender);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
       return receipt;
     }  
     } catch (error) {
@@ -763,6 +874,9 @@ export const StrealProvider = ({children}) => {
   }
 
   //----> this function allows the owner to transfer ownership to another address, in case of purchase or anything
+  const [newOwner, setNewOwner] = useState("");
+  const [OldOwner, setOldOwner] = useState("");
+  const [txnHashForOwnerShip, setTxnHashForOwnerShip] = useState("")
   const transferOwnership = async(address2) => {
     
     try {
@@ -780,6 +894,14 @@ export const StrealProvider = ({children}) => {
       // call the approve function
       const data = await contract.transferOwnership(address2);
       const receipt = data.wait();
+      contract.on("OwnershipTransferred", (oldOwner, recipient, event) => {
+        setNewOwner(recipient);
+        setOldOwner(oldOwner)
+        setTxnHashForOwnerShip(event.transactionHash);
+        console.log("Recipient: ", recipient);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
       return receipt;
     }  
     } catch (error) {
@@ -885,12 +1007,72 @@ export const StrealProvider = ({children}) => {
    
   }
 
+
+  const [airdroppedAddresses, setAirdroppedAddresses] = useState([])
+  const airdroppedAddress = async(address3) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
+
+      // call the approve function
+      const data = await contract.airdroppedAddresses();
+      
+      setAirdroppedAddresses(data);
+    }  
+    } catch (error) {
+      console.error("could not return snapshot balance!");
+    }
+    
+   
+  }
+
+  //----> this function sets time to redeem collateral, airdrops 
+  const setAirdropTime = async(address3) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
+
+      // call the approve function
+      const data = await contract.setAirdropLockTime();
+      
+    }  
+    } catch (error) {
+      console.error("could not return snapshot balance!");
+    }
+    
+   
+  }
+
+  
+
+
+
   const title = "hello functions"
   return (
     <StrealContext.Provider value={{
       //----> fuctions exports
       //-----> hover your mouse above each function to understand how to pass parameters to these functions in your components
+      // helper functions
       getVotes,
+      airdroppedAddress,
       getTokenType,
       getToken,
       getUserData,
@@ -899,8 +1081,11 @@ export const StrealProvider = ({children}) => {
       returnAountToMint,
       returnCollateralUSDvalue,
       returnMintedStreal,
+      getUSDvalue,
+      balanceOfAtSnapshot,
+
+      // main functions 
       airdropUsers,
-      approve,
       burnForCommerce,
       burnFrom,
       increaseAllowance,
@@ -908,7 +1093,6 @@ export const StrealProvider = ({children}) => {
       redeemCollateralForStreal,
       decreaseAllowance,
       depositCollateralAndMintStreal,
-      getUSDvalue,
       depositStrealAndGetToken,
       mintReward,
       transfer,
@@ -916,10 +1100,10 @@ export const StrealProvider = ({children}) => {
       transferOwnership,
       withdraw,
       snapshot,
-      balanceOfAtSnapshot,
+      approval,
+      setAirdropTime,
 
       //-----> data returned from helper functions
-      votes,
       TokensDeposited,
       userData,
       userDataUSDValue,
@@ -930,16 +1114,57 @@ export const StrealProvider = ({children}) => {
       collateralInUSD,
       mintedStreal,
       USDvalue,
+      airdroppedAddresses,
+
+      // snapshot function return data
       snappedBalance,
 
+      // airdrop function returnData
+      airdropDataAmount,
+      airdropDataUser,
 
+      // approve function return data
+      txHash,
+      ApprovedAmount,
+      ApprovedAddress,
 
+      // returned data for depositCollateralAndMintStreal function
+      txHashForCollateralDeposit,
+      ApprovedAmountCollateral,
+
+      // return data for transfer function
+      transferRecipient,
+      transferedAmount,
+      transferTxHash,
+
+      // vote data
+      votedCandidate,
+      voteTxHash,
+
+      // redeemCollateralForStreal return data
+      customerAddress,
+      amountRedeemed,
+      txnHashRedeemedAmount,
+
+      // transfer ownership return data
+      newOwner,
+      OldOwner,
+      txnHashForOwnerShip,
+
+      // mintReward returnData
+      recipientAddresses,
+      mintRewardTxHash,
+
+      // depositStrealAndGetToken Functio return data
+      depositor,
+      amountToreceive,
+      depositTxHash,
 
       //-----> smart contract details
       title,
       data,
       name,
-      balance,
+      balances,
       symbol,
       airdrop,
       totalSupply,

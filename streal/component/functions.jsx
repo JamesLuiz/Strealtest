@@ -4,35 +4,46 @@ import { StrealContext } from '../pages';
 const functions = () => {
     const {
         title,
-        getUSDvalue,
-        getVotes,
-        getTokenType,
-        getToken,
-        getUserData,
-        returnAllowance,
-        returnBalance,
-        returnAountToMint,
-        returnCollateralUSDvalue,
-        returnMintedStreal,
-        airdropUsers, //<>
-        approve,
-        burnForCommerce,
-        burnFrom,
-        increaseAllowance,
-        mintForCommerce,
-        redeemCollateralForStreal,
-        decreaseAllowance,
-        depositCollateralAndMintStreal,
-        depositStrealAndGetToken,
-        mintReward, //<>
-        transfer,
-        vote,
-        transferOwnership,
-        withdraw,
-        snapshot,
-        balanceOfAtSnapshot
+        // this function should be called in a button first
+      //-----> hover your mouse above each function to understand how to pass parameters to these functions in your components
+      // helper functions
+      getVotes,
+      airdroppedAddress,
+      getTokenType,
+      getToken,
+      getUserData,
+      returnAllowance,
+      returnBalance,
+      returnAountToMint,
+      returnCollateralUSDvalue,
+      returnMintedStreal,
+      getUSDvalue,
+      balanceOfAtSnapshot,
+
+      // main functions 
+      airdropUsers,
+      burnForCommerce,
+      burnFrom,
+      increaseAllowance,
+      mintForCommerce,
+      redeemCollateralForStreal,
+      decreaseAllowance,
+      depositCollateralAndMintStreal,
+      depositStrealAndGetToken,
+      mintReward,
+      transfer,
+      vote,
+      transferOwnership,
+      withdraw,
+      snapshot,
+      approval,
+      // wallet connect button
+      walletConnect,
+      setAirdropTime,
 
     } = useContext(StrealContext);
+
+    
 
     /*
         this is how you'll call the airdropUsers and mintReward functions, otherwise you'll get an error, it only accept an array of addresses and corresponding values.
@@ -61,32 +72,62 @@ const functions = () => {
         <p>
             this part will demonstrate how the functions will be used along side their params
         </p>
-       
        <div>
+
+        
+       <button onClick={() =>depositStrealAndGetToken(20, "0xAcDe43b9E5f72a4F554D4346e69e8e7AC8F352f0" )}>deposit streal</button>
+       <button onClick={() =>returnCollateralUSDvalue("0x39b165389b3a0A810843376867Cced4564fA9F69" )}>collateral value</button>
+       <button onClick={() =>redeemCollateralForStreal("0xAcDe43b9E5f72a4F554D4346e69e8e7AC8F352f0",100 )}>redeem collateral</button>
+        
+       </div>
+
+       <div>
+
+       
+       
        <button onClick={() => 
-             depositCollateralAndMintStreal("0xAcDe43b9E5f72a4F554D4346e69e8e7AC8F352f0",                            "0x41b9DB907DDf8c79e3E318e9EeE57CeFbb5cf403", 100)}
+            depositCollateralAndMintStreal("0xAcDe43b9E5f72a4F554D4346e69e8e7AC8F352f0", "0x673cc67E86aFc8fc84Fa5CB5197720169f495190", 300)}
             >
-            deposit
+            mint Streal
         </button>
+
+
        <button onClick={() => 
-             returnMintedStreal("0x39b165389b3a0A810843376867Cced4564fA9F69")}
+            airdropUsers(["0x39b165389b3a0A810843376867Cced4564fA9F69", "0xd320cb4a09b1Fb75bD4557C2D9f2767aD72D0F3b"], ["300", "350"])}
             >
-            mintedStreal
+            air drop
         </button>
+    
        <button onClick={() => 
-             getUserData("0x39b165389b3a0A810843376867Cced4564fA9F69")}
+            mintReward(["0x39b165389b3a0A810843376867Cced4564fA9F69", "0xd320cb4a09b1Fb75bD4557C2D9f2767aD72D0F3b"], ["300", "350"])}
             >
-            User data
+            mint reward
         </button>
+    
        <button onClick={() => 
              snapshot()}
             >
             Snap shot
         </button>
        <button onClick={() => 
+             setAirdropTime()}
+            >
+            set airdrop time
+        </button>
+       <button onClick={() => 
+             withdraw()}
+            >
+            withdraw collateral
+        </button>
+       <button onClick={() => 
              balanceOfAtSnapshot("0x39b165389b3a0A810843376867Cced4564fA9F69")}
             >
             Snap shot balance
+        </button>
+       <button onClick={() => 
+             getUserData("0x39b165389b3a0A810843376867Cced4564fA9F69")}
+            >
+            user data
         </button>
        </div>
 
