@@ -1,5 +1,5 @@
-import React, { useContext } from 'react'
-import { StrealContext } from '../pages'
+import React, { useContext } from "react";
+import { StrealContext } from "../pages/indexData";
 
 const Data = () => {
   const {
@@ -71,35 +71,29 @@ const Data = () => {
     collateralBalance,
     USDC,
     USDT,
-    DAI 
-
-
-
+    DAI,
   } = useContext(StrealContext);
 
-    
-    return (
-      <div>
-        <h3>Owner address: {data}</h3>
-        <h3>Name: {name}</h3>
-        <h3>Token symbol: {symbol}</h3>
-        <h3>Total supply: {totalSupply}</h3>
-        <h3>Airdrop balance: {airdrop}</h3>
-        <div>Owner balnce: {balances}</div>
-        <div>token balances: {collateralBalance}</div>
-        <div>USDC balance: {USDC}</div>
-        <div>USDT balance: {USDT}</div>
-        <div>DAI balance: {DAI}</div> 
-        <div>{Tokens}</div>
-        <div>Minted streal: {mintedStreal}</div> 
-        <div>user Data: {userData}</div>      
-        <div>fiat: ${userDataUSDValue}</div>      
-        <div>Snapshot: {snappedBalance} streal</div> 
-        <div>Snapshot: ${collateralInUSD}</div> 
-             
+  return (
+    <div>
+      <h3>Owner address: {data}</h3>
+      <h3>Name: {name}</h3>
+      <h3>Token symbol: {symbol}</h3>
+      <h3>Total supply: {totalSupply}</h3>
+      <h3>Airdrop balance: {airdrop}</h3>
+      <div>Owner balnce: {balances}</div>
+      <div>token balances: {collateralBalance}</div>
+      <div>USDC balance: {USDC}</div>
+      <div>USDT balance: {USDT}</div>
+      <div>DAI balance: {DAI}</div>
+      <div>{Tokens}</div>
+      <div>Minted streal: {mintedStreal}</div>
+      <div>user Data: {userData}</div>
+      <div>fiat: ${userDataUSDValue}</div>
+      <div>Snapshot: {snappedBalance} streal</div>
+      <div>Snapshot: ${collateralInUSD}</div>
+    </div>
+  );
+};
 
-      </div>
-    )
-}
-
-export default Data
+export default Data;
