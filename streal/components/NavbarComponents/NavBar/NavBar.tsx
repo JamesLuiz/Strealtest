@@ -21,9 +21,10 @@ const NavBar = () => {
   };
 
   return (
-    <div className={`nav--bar ${darkMode && "dark--mode--bg"}`}>
+    <div className={`nav--bar ${darkMode && 'dark--mode--bg'}`}>
       <PrimaryNav
         moreModal={moreModal}
+        setMoreModal={setMoreModal}
         webSettingsModal={webSettingsModal}
         toggleMoreModal={toggleMoreModal}
         setWebSettingsModal={setWebSettingsModal}

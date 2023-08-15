@@ -1,13 +1,15 @@
-import React from "react";
-import MobileNavTitle from "../MobileNavTitle/MobileNavTitle";
-import MobileNavSwitch from "../MobileNavSwitch/MobileNavSwitch";
+import React, { useRef } from 'react';
+import MobileNavTitle from '../MobileNavTitle/MobileNavTitle';
+import MobileNavSwitch from '../MobileNavSwitch/MobileNavSwitch';
 
-import { HiChevronRight } from "react-icons/hi";
-import { useDispatch, useSelector } from "react-redux";
+import { HiChevronRight } from 'react-icons/hi';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   _TOGGLE_MODE,
   _TOGGLE_TESTNET,
-} from "../../../redux/interface/interface-action";
+} from '../../../redux/interface/interface-action';
+import useEscapeKey from '../../../hooks/useEscapeKey';
+import useOutsideClick from '../../../hooks/useOutsideClick';
 
 export interface WebModalProps {
   position?: string;
@@ -20,6 +22,7 @@ const GlobalSettings = ({
   modal,
   setWebSettingsModal,
 }: WebModalProps) => {
+  const ref = useRef(null);
   const dispatch = useDispatch();
   const darkMode = useSelector((state: any) => state.interface.mode);
   const testNet = useSelector((state: any) => state.interface.testNet);
@@ -27,34 +30,41 @@ const GlobalSettings = ({
   const toggleMode = () => dispatch(_TOGGLE_MODE());
   const toggleNet = () => dispatch(_TOGGLE_TESTNET());
 
+  const handleClose = () => {
+    setWebSettingsModal && setWebSettingsModal(false);
+  };
+
+  useEscapeKey(handleClose);
+  useOutsideClick(handleClose, ref);
+
   return (
     <div
       className={`global--settings--wrapper ${
-        position === "web" && !modal && "hide--wrapper"
+        position === 'web' && !modal && 'hide--wrapper'
       }`}
-      onClick={() => setWebSettingsModal && setWebSettingsModal(false)}
     >
       <div
+        ref={ref}
         className={`menu--container web--modal--settings  ${
-          position === "web" && !modal && "close--web--settings"
-        } ${position === "web" && darkMode && "dark--mode--modal--bg"}`}
+          position === 'web' && !modal && 'close--web--settings'
+        } ${position === 'web' && darkMode && 'dark--mode--modal--bg'}`}
         onClick={() => setWebSettingsModal && setWebSettingsModal(true)}
       >
-        <MobileNavTitle text="Global settings" />
+        <MobileNavTitle text='Global settings' />
         <MobileNavSwitch
-          title="Dark mode"
+          title='Dark mode'
           mode={darkMode}
           toggle={toggleMode}
         />
         <MobileNavSwitch
-          title="Testnet mode"
+          title='Testnet mode'
           mode={testNet}
           toggle={toggleNet}
         />
-        <div className="language--selection">
+        <div className='language--selection'>
           <h5>Language</h5>
-          <p className="">
-            English <HiChevronRight className="icon" />
+          <p className=''>
+            English <HiChevronRight className='icon' />
           </p>
         </div>
       </div>
