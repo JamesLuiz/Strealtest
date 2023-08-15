@@ -58,6 +58,9 @@ const MarketsTable = () => {
               <div className='search--box'>
                 <AiOutlineSearch className='search--icon' />
                 <input
+                  className={`!text-black ${
+                    darkMode && '!text-white'
+                  }`}
                   type='input'
                   placeholder='Search asset name, symbol and address'
                 />
