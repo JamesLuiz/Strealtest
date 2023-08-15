@@ -24,8 +24,8 @@ const MyApp = ({ Component, pageProps }: AppProps) => (
           <Component {...pageProps} />
         </Wrapper>
       </Provider>
-      <Data />
-      <Function />
+      {/* <Data /> */}
+      {/* <Function /> */}
     </StrealProvider>
   </StrictMode>
 );

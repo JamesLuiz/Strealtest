@@ -1,4 +1,4 @@
-@import "../../modules/variables";
+@import '../../modules/variables';
 
 // .rdt_TableHeadRow {
 //   border-bottom: 0.5px solid #f7f9fa !important ;
@@ -36,9 +36,14 @@
   display: none;
 }
 
+.table--asset--title {
+  padding-left: 10px;
+}
+
 .box--header {
   display: flex;
   gap: 14px;
+  padding-left: 10px;
 
   img {
     width: 40px;
@@ -148,6 +153,7 @@
     h4 {
       font-size: 21px;
       color: $black;
+      font-weight: 600;
     }
 
     .search--box {
@@ -169,10 +175,12 @@
 
       input {
         width: 100%;
-        background: #383d51;
+        border: 1px solid #383d51;
         color: $white;
         border: 0;
-
+        font-size: 14px;
+        padding-left: 12px;
+        color: $black;
         outline-style: none;
       }
     }
@@ -288,6 +296,26 @@
   }
 }
 
+.show-in-big-screen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+.hide-in-big-screen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  @media (min-width: 767px) {
+    display: none;
+  }
+}
+
 @media (min-width: 1125px) {
   .mobile--table {
     display: none;
@@ -357,7 +385,7 @@
       flex-direction: row;
     }
 
-    &:last-child{
+    &:last-child {
       border: 0;
       padding-bottom: 0;
     }

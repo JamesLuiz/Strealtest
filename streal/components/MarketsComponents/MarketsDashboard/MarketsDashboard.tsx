@@ -63,7 +63,6 @@ const MArketsDashboard = () => {
       <div className="flex--dashboard--tags ">
         {apis.map((item, index) => (
           <DashboardTag
-            icon={item.icon}
             title={item.title}
             figure={item.figure}
             logo={false}
