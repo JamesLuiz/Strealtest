@@ -8,6 +8,7 @@ import { ToastContainer } from "react-toastify";
 import type { AppProps } from "next/app";
 import { Provider } from "react-redux";
 import Wrapper from "../components/wrapper/Wrapper";
+import "react-toastify/dist/ReactToastify.css";
 import store from "../redux/store";
 
 const MyApp = ({ Component, pageProps }: AppProps) => (
