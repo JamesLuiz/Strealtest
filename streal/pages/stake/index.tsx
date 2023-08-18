@@ -6,7 +6,11 @@ import React from "react";
 const Stake = () => {
   return (
     <div>
-      <MainPageLayout Dashboard={<StakeDashboard />} Table={<StakeTable />} />
+      <MainPageLayout
+        centerPage={true}
+        Dashboard={<StakeDashboard />}
+        Table={<StakeTable />}
+      />
     </div>
   );
 };

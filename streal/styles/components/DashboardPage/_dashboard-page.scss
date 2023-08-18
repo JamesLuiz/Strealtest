@@ -273,7 +273,49 @@
 }
 
 .dashboard-table-post-connection {
-  display: flex;
+  .header-buttons {
+    width: 360px;
+
+    display: flex;
+    justify-content: space-between;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: $grey;
+    padding: 3px;
+    @media screen and (min-width: 1280px) {
+      display: none;
+    }
+    button {
+      all: unset;
+      cursor: pointer;
+      text-align: center;
+      font-size: $text-sm;
+      padding: 6px 20px;
+      border-radius: 4px;
+      width: fit-content;
+      width: 49%;
+      font-weight: 600;
+      &.select-btn {
+        background: white;
+      }
+      &.unselect-btn {
+      }
+
+      .selected {
+        background: $gradient-bg;
+        color: $linear-gradient;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .unselected {
+        color: $black;
+      }
+    }
+  }
+  display: block;
+  @media screen and (min-width: 1280px) {
+    display: flex;
+  }
 
   height: 100%;
 
@@ -282,9 +324,21 @@
 
   justify-content: space-between;
   .borrows-main-col {
+    &.hide-col {
+      display: none;
+      @media screen and (min-width: $xl) {
+        display: flex;
+      }
+    }
     @include borrow-supplies-col();
   }
   .supplies-main-col {
+    &.hide-col {
+      display: none;
+      @media screen and (min-width: $xl) {
+        display: flex;
+      }
+    }
     @include borrow-supplies-col();
   }
 }

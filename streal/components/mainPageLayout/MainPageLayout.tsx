@@ -5,6 +5,7 @@ interface MainPagesLayoutProps {
   Dashboard: ReactNode;
   Table: ReactNode;
   transparentBgPage?: boolean;
+  centerPage?: boolean;
 }
 
 export default function MainPageLayout(props: MainPagesLayoutProps) {
@@ -36,7 +37,9 @@ export default function MainPageLayout(props: MainPagesLayoutProps) {
                 ? { marginTop: 0 }
                 : { background: "" }
             } */
-            className={`table-main ${darkMode && "inner--page--bg"}`}
+            className={`table-main ${darkMode && "inner--page--bg"} ${
+              props.centerPage ? "center-page" : ""
+            }`}
           >
             {props.Table}
           </div>

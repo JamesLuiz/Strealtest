@@ -1,4 +1,4 @@
-import SupplyBorrowItemType from "@/Types/SupplyBorrowItemType";
+import SupplyBorrowItemType from "../../../Types/SupplyBorrowItemType";
 import { BsCheck2, BsExclamationCircle, BsDashLg } from "react-icons/bs";
 import { useRouter } from "next/router";
 export default function DashboardTablePostConnectItem(

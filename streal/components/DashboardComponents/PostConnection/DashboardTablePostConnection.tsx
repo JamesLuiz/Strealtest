@@ -4,6 +4,22 @@ import { BsInfoCircle } from "react-icons/bs";
 
 export default function DashboardTablePostConnection() {
   const [coinData, setCoinData] = useState([]);
+  const [isSupplyHeader, setIsSupplyHeader] = useState(false);
+  const headerButtonsMobile = [
+    {
+      name: "Supply",
+
+      onclick: () => {
+        setIsSupplyHeader(true);
+      },
+    },
+    {
+      name: "Borrow",
+      onclick: () => {
+        setIsSupplyHeader(false);
+      },
+    },
+  ];
   const assetToBorrowHeader = [
     { name: "Assets" },
     { name: "Available" },
@@ -28,7 +44,44 @@ export default function DashboardTablePostConnection() {
   }, []);
   return (
     <div className="dashboard-table-post-connection">
-      <div className="supplies-main-col">
+      <div className="header-buttons">
+        {headerButtonsMobile.map((item, index) => {
+          return (
+            <button
+              className={`  ${
+                item.name === "Borrow"
+                  ? isSupplyHeader
+                    ? "unselect-btn"
+                    : "select-btn"
+                  : !isSupplyHeader
+                  ? "unselect-btn"
+                  : "select-btn"
+              }`}
+              onClick={() => {
+                item.onclick();
+              }}
+              key={index}
+            >
+              <span
+                className={`  ${
+                  item.name === "Borrow"
+                    ? isSupplyHeader
+                      ? "unselected"
+                      : "selected"
+                    : !isSupplyHeader
+                    ? "unselected"
+                    : "selected"
+                }`}
+              >
+                {item.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div
+        className={`supplies-main-col  ${!isSupplyHeader ? "hide-col" : ""}`}
+      >
         <div className="sec-col">
           <div className="sec-title1">Your supplies</div>
           <div className="sec-title2">Nothing supplied yet </div>
@@ -81,7 +134,9 @@ export default function DashboardTablePostConnection() {
           </div>
         </div>
       </div>
-      <div className="borrows-main-col">
+      <div
+        className={` borrows-main-col  ${!isSupplyHeader ? "" : "hide-col"}`}
+      >
         <div className="sec-col">
           <div className="sec-title1">Your borrows</div>
           <div className="sec-title2">Nothing supplied yet</div>

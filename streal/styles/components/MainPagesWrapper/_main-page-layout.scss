@@ -13,6 +13,7 @@
     display: flex;
 
     padding: 80px 20px 72px;
+
     align-items: center;
     justify-content: center;
 
@@ -81,9 +82,9 @@
         margin-top: -40px;
 
         display: flex;
-        justify-content: center;
-        align-items: center;
+
         border: 2px $primary-gray solid;
+
         box-sizing: border-box;
         box-shadow: 10px 10px 30px $primary-gray;
         height: 100%;
@@ -96,6 +97,10 @@
         @media screen and (min-width: $md) {
           width: 100%;
         }
+      }
+      .center-page {
+        justify-content: center;
+        align-items: center;
       }
     }
   }
