@@ -85,11 +85,11 @@ export const useWeb3 = () => {
   }, [provider]);
 
   // Auto connect to the cached provider
-  useEffect(() => {
+  /*   useEffect(() => {
     if (web3Modal && web3Modal.cachedProvider) {
       _CONNECT_WALLET();
     }
-  }, [_CONNECT_WALLET]);
+  }, [_CONNECT_WALLET]); */
 
   // EIP-1193 events
   useEffect(() => {

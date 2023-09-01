@@ -10,6 +10,8 @@ import { MdClose } from "react-icons/md";
 import _CONNECT_WALLET from "../../../redux/auth/auth-action";
 import { useWeb3 } from "../../../redux/auth/hooks";
 import { useDispatch } from "react-redux";
+import { StrealContext } from "../../../pages/indexData";
+import { useContext } from "react";
 
 interface Props {
   mobileNavModal: boolean;
@@ -29,6 +31,10 @@ const SecondaryNav = ({
   const { web3Provider, _CONNECT_WALLET, _DISCONNECT_WALLET, address } =
     useWeb3();
 
+  const strealData = useContext(StrealContext);
+
+  const { getUserData, data, connectWallet } = strealData;
+
   return (
     <div className="secondary--nav">
       <ConnectWalletModal
@@ -37,10 +43,14 @@ const SecondaryNav = ({
       ></ConnectWalletModal>
       {!mobileNavModal && (
         <PrimaryButton
-          onClick={web3Provider ? _DISCONNECT_WALLET : _CONNECT_WALLET}
+          onClick={() => {
+            _CONNECT_WALLET();
+            connectWallet();
+          }}
+          /*  onClick={web3Provider ? _DISCONNECT_WALLET : _CONNECT_WALLET} */
           text={
-            address
-              ? `${address?.slice(0, 4)}...${address?.slice(38, 43)}`
+            data
+              ? `${data?.slice(0, 4)}...${data?.slice(38, 43)}`
               : "Connect wallet"
           }
         />
