@@ -3,7 +3,7 @@ import Image from "next/image";
 import Web3Modal from "web3modal";
 import { ethers } from "ethers";
 import { strealAddress, strealAbi } from "../../context/constant";
-
+import { useAccount, useContract } from "wagmi";
 const fetchContract = (signerOrProvider) =>
   new ethers.Contract(strealAddress, strealAbi, signerOrProvider);
 
@@ -91,9 +91,8 @@ export const StrealProvider = ({ children }) => {
   };
 
   useLayoutEffect(() => {
-    connectWallet();
-
     // listening for account change
+
     window.ethereum.on("accountsChanged", (accounts) => {
       setAccounts(accounts[0]);
     });

@@ -11,7 +11,14 @@ export default function HeaderDashboard() {
       <div className="flex text-white justify-between px-[12vw] mx-auto  ">
         {headerBtn.map((item, index) => {
           return (
-            <button className={`${index === 1 ? " " : "text-gray-400"} `}>
+            <button
+              key={index}
+              className={`${
+                index === 1
+                  ? " border-spiceOrange"
+                  : "text-gray-400 border-lightGray"
+              } border-b-2  py-2`}
+            >
               {item.name}
             </button>
           );

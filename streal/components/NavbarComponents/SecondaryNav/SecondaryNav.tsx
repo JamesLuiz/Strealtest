@@ -3,7 +3,7 @@ import Image from "next/image";
 import React from "react";
 import MobileNavList from "../MobileNavList/MobileNavList";
 import ConnectWalletModal from "../../../components/modals/ConnectWalletModal";
-
+import { useAccount } from "wagmi";
 import SETTINGS from "../../../public/Images/settings.svg";
 import { BiMenu } from "react-icons/bi";
 import { MdClose } from "react-icons/md";
@@ -28,8 +28,15 @@ const SecondaryNav = ({
   toggleConnectWalletModal,
   connectWalletModal,
 }: Props) => {
-  const { web3Provider, _CONNECT_WALLET, _DISCONNECT_WALLET, address } =
-    useWeb3();
+  const { web3Provider, _CONNECT_WALLET, _DISCONNECT_WALLET } = useWeb3();
+  const {
+    address,
+    connector,
+    isConnected,
+    isConnecting,
+    isDisconnected,
+    isReconnecting,
+  } = useAccount();
 
   const strealData = useContext(StrealContext);
 
@@ -49,8 +56,8 @@ const SecondaryNav = ({
           }}
           /*  onClick={web3Provider ? _DISCONNECT_WALLET : _CONNECT_WALLET} */
           text={
-            data
-              ? `${data?.slice(0, 4)}...${data?.slice(38, 43)}`
+            address
+              ? `${address?.slice(0, 4)}...${address?.slice(38, 43)}`
               : "Connect wallet"
           }
         />

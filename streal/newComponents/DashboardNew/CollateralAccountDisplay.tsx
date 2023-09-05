@@ -1,10 +1,18 @@
 import { useContext, useEffect, useState } from "react";
 import { StrealContext } from "../../pages/indexData";
+import { useAccount } from "wagmi";
 
 export default function CollateralAccountDisplay() {
   const [collateralDisplayed, setCollateralDisplayed] = useState("USDC");
   const collateralBtns = [{ name: "USDC" }, { name: "DAI" }, { name: "USDT" }];
-
+  const {
+    address,
+    connector,
+    isConnected,
+    isConnecting,
+    isDisconnected,
+    isReconnecting,
+  } = useAccount();
   const strealData = useContext(StrealContext);
   const {
     getUserData,
@@ -36,7 +44,7 @@ export default function CollateralAccountDisplay() {
           );
         })}
       </div>
-      {data ? (
+      {address ? (
         <div className="absolute text-[30px] left-[28px] bottom-[9px]  text-white font-manrope">
           {[
             { val: USDC, name: "USDC" },

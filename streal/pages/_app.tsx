@@ -10,6 +10,7 @@ import { Provider } from "react-redux";
 import Wrapper from "../components/wrapper/Wrapper";
 import "react-toastify/dist/ReactToastify.css";
 import store from "../redux/store";
+import Web3ModalNew from "../web3ModalNew/Web3ModalNew";
 
 const MyApp = ({ Component, pageProps }: AppProps) => (
   <StrictMode>
@@ -20,10 +21,12 @@ const MyApp = ({ Component, pageProps }: AppProps) => (
           position="bottom-right"
           autoClose={2000}
         />
-        <Wrapper>
-          {" "}
-          <Component {...pageProps} />
-        </Wrapper>
+        <Web3ModalNew>
+          <Wrapper>
+            {" "}
+            <Component {...pageProps} />
+          </Wrapper>
+        </Web3ModalNew>
       </Provider>
       {/* <Data /> */}
       {/* <Function /> */}
