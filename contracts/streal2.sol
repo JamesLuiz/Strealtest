@@ -23,10 +23,10 @@
  * DAI: 0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046
  * USDC: 0x572dDec9087154dC5dfBB1546Bb62713147e0Ab0
  * USDT: 0x92C09849638959196E976289418e5973CC96d645
- * The system is deisgned to be as minimal as possible, and have the tokens maintain a 1 token == $5 (usdc, usdt, dai, gold) peg at all times.
+ * The system is deisgned to be as minimal as possible, and have the tokens maintain a 1 token == $5 (usdc, usdt, dai) peg at all times.
  * This is a stablecoin with the properties:
  * - Exegenously Collateralized
- * - Matic Pegged
+ * - USDC, DAI, USDT Pegged
  * - Algorithmically Stable
  *
  * It is similar to DAI if DAI had no governance, no fees, and was backed by only (usdc, usdt, dai, gold).
@@ -45,20 +45,21 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OracleLib, AggregatorV3Interface} from "./libraries/OracleLib.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Vault} from "./Vault.sol";
 
 
-contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, ReentrancyGuard {
+contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, ReentrancyGuard {
     // state variables
     address[] public _collateralTokens; 
     uint256 private constant Additional_Feed_Precision = 1e10;
     uint256 private constant Feed_Precision = 1e18;
-    uint256 private constant Liquidation_threshold = 5;
+    uint256 private Liquidation_threshold ;
     uint256 private constant Liquidation_Precision = 100;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     address[] public supportedTokens;
@@ -67,7 +68,10 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     uint256 public airdrops = 100000000 * 1e18;
     uint256 private supply = 200000000 * 1e18;
     uint256 public airdropLockTime;
+    uint256 public depositLocktime;
     uint256 public airdropLockTimeSet;
+    address[] private Vaults = [0x285B84AcB1B237cE2d3a3bB6bf4997c0db63bd71, 0xB5E45bC8E119Fb3Ab8cfBC4F182Cc0150dE58C75];
+    Vault public i_vault;
     
     
 
@@ -96,19 +100,19 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
 
     // modifiers
     modifier allowedToken (address token) {
-        require(priceFeed[token] != address(0), "invalid token");
+        require(priceFeed[token] != address(0));
         _;
     }
 
     modifier moreThanZero (uint256 amount) {
-        require(amount > 0, "amount must be greater than zero");
+        require(amount > 0);
         _;
     }
 
 
 
 
-    constructor() ERC20("Streal", "Streal") {
+    constructor() ERC20("Streal", "STR") {
 
          supportedTokens = [
             0xAcDe43b9E5f72a4F554D4346e69e8e7AC8F352f0, // usdt,
@@ -128,8 +132,6 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
             priceFeed [supportedTokens[i]] = priceFeedAddress[i];
             _collateralTokens.push(supportedTokens[i]);
         } 
-
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _mint(msg.sender, supply);
         supply -= airdrops;
 
@@ -140,70 +142,80 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     address tokenCollateralAddress,
     uint256 amountCollateral 
     ) public  {
-        depositCollateral(tokenCollateralAddress, amountCollateral);
-
-        // Calculate the equivalent amount of Streal tokens to mint based on the collateral type
-        uint256 equivalentAmountToMint = calculateEquivalentAmountToMint(tokenCollateralAddress, amountCollateral);
-        uint256 amount = equivalentAmountToMint * 1e18;
+        uint256 payment = depositCollateral(msg.sender, tokenCollateralAddress, amountCollateral);
         // Mint the calculated equivalent amount of Streal tokens
-        mintStreal(amount);
+        mintStreal(msg.sender, payment);
+        
     }
 
-    
+    function setStrealValue(uint256 _value) public onlyOwner {
+        Liquidation_threshold = _value;
+    }
 
     function calculateEquivalentAmountToMint(address tokenCollateralAddress, uint256 amountCollateral) public view returns (uint256) {
         // Determine the decimal places based on the token type
         uint8 tokenDecimals = getDecimals(tokenCollateralAddress);
         uint256 amount = amountCollateral * (10**tokenDecimals);
-        uint256 strealPrice = 5 * 1e18;
+        
+
+        uint256 strealPrice = Liquidation_threshold * 1e18;
         // Calculate the equivalent amount of Streal tokens based on the collateral value
         uint256 equivalentAmountToMint = (amount * (10**(18 - tokenDecimals))) / (strealPrice);
         return equivalentAmountToMint;
     }
 
-    function getDecimals(address tokenAddress) internal view returns (uint8) {
+    function getDecimals(address tokenAddress) public view returns (uint8) {
         IERC20Metadata token = IERC20Metadata(tokenAddress);
         return token.decimals();
 
     }
-    /// @notice Follows CEI
-    /// @notice tokenCollateralAddress, address of token to deposit as collateral
-    /// @notice amount of collteral to be deposited
+
     
-    function depositCollateral (address tokenCollateralAddress, uint256 _amount) private moreThanZero(_amount) nonReentrant allowedToken(tokenCollateralAddress)
+    function setContractAddress(address _contractAddress) public onlyOwner {
+        i_vault = Vault(_contractAddress);
+    }
+    
+    function depositCollateral (address user, address tokenCollateralAddress, uint256 _amount) public  moreThanZero(_amount) nonReentrant allowedToken(tokenCollateralAddress) returns (uint256 payment)
     {   uint8 decimals = getDecimals(tokenCollateralAddress);
         uint256 amount = _amount * (10**decimals);
-        _collateralDeposited[msg.sender][tokenCollateralAddress] += amount;
-        emit collateralDeposited(msg.sender, tokenCollateralAddress, amount );
+        _collateralDeposited[user][tokenCollateralAddress] += amount;
+        emit collateralDeposited(user, tokenCollateralAddress, amount );
 
         IERC20(tokenCollateralAddress).transferFrom(
-            msg.sender, 
-            address(this),
+            user, 
+            Vaults[0],
             amount
         );
 
+        uint256 params = amount / 10**decimals;
+        // Calculate the equivalent amount of Streal tokens to mint based on the collateral type
+        uint256 equivalentAmountToMint = calculateEquivalentAmountToMint(tokenCollateralAddress, params);
+        payment = equivalentAmountToMint * 1e18;
+        return payment;  
+
     }
 
-   function depositStrealAndGetToken(uint256 amountStreal, address tokenCollateralAddress) public {
-        require(block.timestamp >= getUserStartTime(msg.sender)  + airdropLockTime, "time"); 
+   function depositStrealAndGetToken(uint256 amountStreal, address tokenCollateralAddress) public   {
+        require(block.timestamp >= getUserStartTime(msg.sender)  + depositLocktime); 
         require(!airdroppedAddress[msg.sender], "airdrop");
         // Determine the decimal places based on the token type
         uint8 tokenDecimals = getDecimals(tokenCollateralAddress);
         // Calculate the equivalent amount of collateral tokens based on the Streal value
-        uint256 equivalentAmountToReceive = amountStreal * 5 * (10 ** tokenDecimals);
+        uint256 equivalentAmountToReceive = amountStreal * Liquidation_threshold * (10 ** tokenDecimals);
         
         uint256 amountFee = equivalentAmountToReceive * 3 / 100;
         uint256 amountAfterFee = equivalentAmountToReceive - amountFee;
         
         uint256 leftOver = amountAfterFee / 10**tokenDecimals;
         // Ensure that the contract has enough of the desired token
-        require(IERC20(tokenCollateralAddress).balanceOf(address(this)) >= equivalentAmountToReceive);
+        require(IERC20(tokenCollateralAddress).balanceOf(Vaults[0]) >= equivalentAmountToReceive);
         // Deduct the Streal from the user's balance
         burnStreal(amountStreal * 1e18);
         _mint(owner(), amountStreal * 1e18);
         // Transfer the fee to the contract owner and the remaining amount to the user
-        IERC20(tokenCollateralAddress).transfer(owner(), amountFee);
-        IERC20(tokenCollateralAddress).transfer(msg.sender, amountAfterFee);
+        i_vault.transferToken(tokenCollateralAddress, owner(), amountFee);
+        i_vault.transferToken(tokenCollateralAddress, msg.sender, amountAfterFee);
+
         emit strealDeposited(msg.sender, leftOver);
     }
 
@@ -212,8 +224,8 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         address tokenCollateralAddress,
         uint256 amountCollateral
     ) public {
-        require(block.timestamp >= getUserStartTime(msg.sender) + airdropLockTime, "time");
-        require(!airdroppedAddress[msg.sender], "airdrop");
+        require(block.timestamp >= getUserStartTime(msg.sender) + airdropLockTime);
+        require(!airdroppedAddress[msg.sender]);
 
         uint8 tokenDecimals = getDecimals(tokenCollateralAddress);
         uint256 amount = amountCollateral * (10**tokenDecimals);
@@ -227,32 +239,29 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         // Deduct the collateral from the user's deposited collateral
         _collateralDeposited[msg.sender][tokenCollateralAddress] -= amount;
         // Deduct the fee from the collateral
-        uint256 balances =  amount -= fee; 
+        uint256 balances =  amount - fee; 
         uint256 leftOver = balances / 10**tokenDecimals;
-        uint256 contractBalance = IERC20(tokenCollateralAddress).balanceOf(address(this));
+        uint256 contractBalance = IERC20(tokenCollateralAddress).balanceOf(Vaults[0]);
         require(contractBalance >= balances);
         // Transfer the collateral to the user
-        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, balances);
-
-        require(success);
-        IERC20(tokenCollateralAddress).transfer(owner(), fee);
+        i_vault.transferToken(tokenCollateralAddress, owner(), fee);
+        i_vault.transferToken(tokenCollateralAddress, msg.sender, balances); 
+        
        
         // Burn the Streal tokens
         burnStreal(_amount);
         emit redeemedCollateral(msg.sender, leftOver);
         
     }
-
-
     /* 
     @notice amountToMint the amount of streal to mint
     @notice check if they have more collateral value than the minimum threshHold
     */
     
 
-    function mintStreal(uint256 amountToMint) private moreThanZero(amountToMint){
-       mintedStreal[msg.sender] += amountToMint;
-       bool minted = mint(msg.sender, amountToMint);
+    function mintStreal(address user, uint256 amountToMint) private moreThanZero(amountToMint){
+       mintedStreal[user] += amountToMint;
+       bool minted = mint(user, amountToMint);
         require(minted);
     }
     
@@ -293,16 +302,6 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         collateralValueInUsd = getAccountCollateralValueInUsd(user);
     }
 
-    //// @notice returns how close a user is to liquidation
-    //// @notice if the user goes below ration, they'll be liquidated
-
-
-    
-
-    /////////////////////////////////////
-    //public & external view Functions//
-    ///////////////////////////////////
-
     
 
     function getUsdValue(address token, uint256 amount) public view returns(uint256){
@@ -324,6 +323,7 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         }
        
     }
+
 
    function balance() public view returns (uint256[] memory) {
         uint256[] memory balances = new uint256[](supportedTokens.length);
@@ -347,7 +347,7 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
         uint256 balances = balanceOf(msg.sender);
         
         require(_amount > 0);
-        require (balances >= _amount, "burnable exceeds balance"); 
+        require (balances >= _amount); 
         super.burn(_amount);
     }
 
@@ -359,19 +359,18 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
 
 
     function mint(address to, uint256 amount) internal nonReentrant returns (bool) {
-
-        require (to != address(0), "invalid address");
+        require (to != address(0));
         require (amount >= 0);
        _mint(to, amount);
        return true;
     }
 
 
-    function mintForCommerce(address to, uint256 amount) public nonReentrant onlyOwner returns (bool) {
-
-       to = msg.sender; 
+    function mintForCommerce(address _to, uint256 amount) public nonReentrant  returns (bool) {
+        require(msg.sender == Vaults[0]);
+       address to = _to;  
         require (amount >= 0);
-       _mint(to, amount * 1e18);
+       _mint(to, amount);
        return true;
     }
 
@@ -413,8 +412,9 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
     }
 
 
-   function setAirdropLockTime(uint256 _airdropLockTime) public onlyOwner {
+   function setAirdropLockTime(uint256 _airdropLockTime, uint256 _depositLocktime) public onlyOwner {
         airdropLockTime = _airdropLockTime;
+        depositLocktime = _depositLocktime;
         airdropLockTimeSet = block.timestamp;
     }
 
@@ -442,15 +442,17 @@ contract Streal is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, AccessControl, 
             airdropTimes[recipients[i]] = block.timestamp;
         }
         airdrops -= totalValue * 1e18;
-        return true;
+        return success;
     }
 
-    function vote(address candidate) public returns (bool success) {
+    function vote(address candidate, uint256 _amount) public returns (bool success) {
         require(candidate != msg.sender);
         require(hasVoted[msg.sender] != candidate);
-        votes[candidate] += 1;
+        votes[candidate] += 1 * _amount;
         hasVoted[msg.sender] = candidate;
+        _transfer(msg.sender, Vaults[1],  _amount * 1e18);
         emit voted(candidate);
-        return true;
+        return success;
     }
+
 }

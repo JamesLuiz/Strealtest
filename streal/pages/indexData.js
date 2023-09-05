@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext, useLayoutEffect } from "react";
-import Image from "next/image";
-import Web3Modal from "web3modal";
+
 import { ethers } from "ethers";
 import { strealAddress, strealAbi } from "../../context/constant";
-import { useAccount, useContract } from "wagmi";
+
 const fetchContract = (signerOrProvider) =>
   new ethers.Contract(strealAddress, strealAbi, signerOrProvider);
+const vaultContract = (signerOrProvider) => new ethers.Contract(vaultAdddress, vaultAbi, signerOrProvider)
+
 
 export const StrealContext = React.createContext();
 
@@ -508,29 +509,6 @@ export const StrealProvider = ({ children }) => {
     }
   };
 
-  //-----> this function allow the owner to owner to mint streal an address
-  const mintForCommerce = async (addressUser, amount) => {
-    try {
-      if (!window.ethereum) return console.log("Install MetaMask");
-      // if not connected, request connection
-      if (window.ethereum.isConnected()) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        console.log(address);
-
-        // fetch the contract using signer
-        const contract = fetchContract(signer);
-
-        // call the approve function
-        const data = await contract.mintForCommerce(addressUser, amount);
-        const receipt = data.wait();
-        return receipt;
-      }
-    } catch (error) {
-      console.error("could not mint to sender, check input");
-    }
-  };
 
   //--------> this funtion allow users to get their tokens back and burn the streal the hold from circulation.
   const [customerAddress, setCustomerAddress] = useState("");
@@ -670,6 +648,8 @@ export const StrealProvider = ({ children }) => {
       );
     }
   };
+
+
   //-----> this function allows you to return your streal to the circulating supply and then get your collateral will be refunded - platform fee. NB>(for vendors and big accounts).
   const [depositor, setDepositor] = useState("");
   const [amountToreceive, setAmountToreceive] = useState("");
@@ -799,38 +779,41 @@ export const StrealProvider = ({ children }) => {
     }
   };
 
-  //---->  this function is for voting proposals made by the team, basically for feed back
+  //---->  this function is for voting proposals made by the team or general proposals, basically for feed back
   const [votedCandidate, setVotedCandidate] = useState("");
   const [voteTxHash, setVoteTxHash] = useState("");
-  const vote = async (address1) => {
+  const vote = async(address1, amount) => {
+    
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
       // if not connected, request connection
       if (window.ethereum.isConnected()) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        console.log(address);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
 
-        // fetch the contract using signer
-        const contract = fetchContract(signer);
-
-        // call the approve function
-        const data = await contract.vote(address1);
-        const receipt = data.wait();
-        contract.on("voted", (spender, event) => {
-          setVotedCandidate(spender);
-          setVoteTxHash(event.transactionHash);
-          console.log("Recipient: ", spender);
-          console.log("Event transaction: ", event.transactionHash);
-          console.log("Event block number: ", event.blockNumber);
-        });
-        return receipt;
-      }
+      // call the approve function
+      const data = await contract.vote(address1, amount);
+      const receipt = data.wait();
+      contract.on("voted", (spender, event) => {
+        setVotedCandidate(spender);
+        setVoteTxHash(event.transactionHash);
+        console.log("Recipient: ", spender);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
+      return receipt;
+    }  
     } catch (error) {
       console.error("could not vote, check your input");
     }
-  };
+    
+   
+  }
 
   //----> this function allows the owner to transfer ownership to another address, in case of purchase or anything
   const [newOwner, setNewOwner] = useState("");
@@ -996,6 +979,229 @@ export const StrealProvider = ({ children }) => {
     }
   };
 
+  const setStrealValue= async(value) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
+
+      // call the approve function
+      await contract.setStrealValue(value);
+      
+    }  
+    } catch (error) {
+      console.error("could not set value, you're not the owner!");
+    }
+    
+   
+  }
+  //----> this function sets the value of streal, it determines the collateralisation either 1:1 peg or 5:1 peg or more 
+  const setCDS= async(CDSAddress) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = fetchContract(signer);
+
+      // call the approve function
+      await contract.setContractAddress(CDSAddress);
+      
+    }  
+    } catch (error) {
+      console.error("You're not the owner or the address is wrong");
+    }
+    
+   
+  }
+
+  //---> Vault contract 
+   //-----> this function allow a user to mint streal to another address whlie paying for the collateral
+   const [stock, setStockOwner] = useState("");
+   const [tip, setTip] = useState("");
+   const [hash, setHash] = useState("")
+  const MintForOthers = async(contractAddress, addressUser, TokenAddress, amount) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = vaultContract(signer);
+
+      // call the approve function
+      const tokenContract = new ethers.Contract(
+        TokenAddress,
+        [
+            "function approve(address to, uint256 value) public returns(bool)",
+            "function decimals() view returns(uint8)"
+        ],
+        signer
+      );
+      
+  
+        // Call the approve function on the token contract
+        const approveTx = await tokenContract.approve(contractAddress, amount);
+  
+        // Wait for the transaction to be mined
+        await approveTx.wait();
+  
+        console.log("Token approved successfully");
+
+
+      const data = await contract.deposit(addressUser, TokenAddress, amount);
+      const receipt = data.wait();
+      contract.on("collateralDeposit", (stock, tip, event) => {
+        setStockOwner(stock);
+        setTip(tip)
+        setHash(event.transactionHash);
+        console.log("Recipient: ", stock);
+        console.log("Event transaction: ", event.transactionHash);
+        console.log("Event block number: ", event.blockNumber);
+      });
+      return receipt;
+    }  
+    } catch (error) {
+      console.error("could not mint to sender, check input");
+    }
+    
+   
+  }
+
+  // ----> this function allows the contract owner to set the CDS address for the Vault
+  const setStreal= async(STRAddress) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = vaultContract(signer);
+
+      // call the approve function
+      await contract.SetCDS(STRAddress);
+      
+    }  
+    } catch (error) {
+      console.error("You're not the owner or the address is wrong");
+    }
+    
+   
+  }
+
+
+  // ----> this function allows the contract owner to withddraw from the vault
+  const WithdrawFromVault= async(tokenAddress, amount) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = vaultContract(signer);
+
+      // call the approve function
+      await contract.withdraw(tokenAddress, amount);
+      
+    }  
+    } catch (error) {
+      console.error("You're not the owner or the address is wrong");
+    }
+    
+   
+  }
+
+  // ----> this function RETURNS the total balance deposited into the vault contract
+  const [depositedBalance, setDepositedBalance] = useState("");
+  const totalDeposited= async(tokenAddress) => {
+    
+    try {
+      if (!window.ethereum) return console.log("Install MetaMask");
+      // if not connected, request connection
+      if (window.ethereum.isConnected()) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      console.log(address)
+      
+      // fetch the contract using signer
+      const contract = vaultContract(signer);
+      const data = fetchContract(signer)
+      sum = data.getDecimals(tokenAddress)
+      // call the approve function
+      tx = await contract.getBalance(tokenAddress);
+      receipt = tx.wait();
+
+      value = tx / 10**sum;
+      setDepositedBalance(value)
+      return receipt;
+    }  
+    } catch (error) {
+      console.error("the address is wrong");
+    }
+    
+   
+  }
+
+   // ----> this function RETURNS the total balanced users deposited to buy stock
+   const [stockBalance, setStockBalance] = useState("");
+   const getBalance= async(tokenAddress) => {
+     
+     try {
+       if (!window.ethereum) return console.log("Install MetaMask");
+       // if not connected, request connection
+       if (window.ethereum.isConnected()) {
+       const provider = new ethers.providers.Web3Provider(window.ethereum);
+       const signer = provider.getSigner();
+       const address = await signer.getAddress();
+       console.log(address)
+       
+       // fetch the contract using signer
+       const contract = vaultContract(signer);
+      
+       
+       tx = await contract.balance(tokenAddress);
+       receipt = tx.wait();
+ 
+       setStockBalance(tx)
+       return receipt;
+     }  
+     } catch (error) {
+       console.error("the address is wrong");
+     }
+     
+    
+   }
+
   const title = "hello functions";
   return (
     <StrealContext.Provider
@@ -1021,7 +1227,6 @@ export const StrealProvider = ({ children }) => {
         burnForCommerce,
         burnFrom,
         increaseAllowance,
-        mintForCommerce,
         redeemCollateralForStreal,
         decreaseAllowance,
         depositCollateralAndMintStreal,
@@ -1034,6 +1239,13 @@ export const StrealProvider = ({ children }) => {
         snapshot,
         approval,
         setAirdropTime,
+        setStrealValue,
+        setCDS,
+        MintForOthers,
+        setStreal,
+        WithdrawFromVault,
+        totalDeposited,
+        getBalance,
 
         // connect wallet function
         connectWallet,
@@ -1095,6 +1307,17 @@ export const StrealProvider = ({ children }) => {
         depositor,
         amountToreceive,
         depositTxHash,
+
+        // MintForOthers return Data
+        stock,
+        tip,
+        hash,
+
+        // data returned from deposited function
+        depositedBalance,
+
+        // data returned from getBalance function
+        stockBalance,
 
         //-----> smart contract details
         title,
