@@ -26,7 +26,7 @@ export default function CollateralAccountDisplay() {
   } = strealData;
   console.log("some", USDC, USDT, DAI);
   return (
-    <div className="w-[310px] h-[150px] rounded-[16px] bg-dirtBrown relative">
+    <div className="w-[310px] h-[150px] rounded-[16px] bg-[#303030] relative">
       <div className="absolute flex gap-x-[4px] top-[9px] right-[12px]">
         {collateralBtns.map((item) => {
           return (

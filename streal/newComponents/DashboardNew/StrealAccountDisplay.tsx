@@ -33,7 +33,7 @@ export default function StrealAccountDisplay() {
         {address ? (
           { mintedStreal } + "STRL"
         ) : (
-          <div className=" text-white text-base font-thin">
+          <div className=" text-black text-base font-thin">
             Please connect your wallet.
           </div>
         )}

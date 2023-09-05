@@ -7,7 +7,7 @@ export default function HeaderDashboard() {
     { name: "REDEEM COLLATERAL" },
   ]);
   return (
-    <div className="w-full bg-black">
+    <div className="w-full bg-black text-[12px] lg:text-[16px]">
       <div className="flex text-white justify-between px-[12vw] mx-auto  ">
         {headerBtn.map((item, index) => {
           return (

@@ -10,7 +10,7 @@ const NavLinks = ({ toggleModal }: Props) => {
   const location = useRouter();
 
   return (
-    <ul className="nav--links">
+    <ul className="nav--links text-sm">
       <li
         onClick={toggleModal}
         className={location.pathname === "/" ? "active" : ""}

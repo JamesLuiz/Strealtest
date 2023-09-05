@@ -4,13 +4,14 @@ import Image from "next/image";
 import dashboardArrow from "../../public/newImages/dashboard/dashboard-arrow.svg";
 import HeaderDashboard from "../DashboardComponents/HeaderDashboard";
 import { useState } from "react";
+import MintStreal from "../UserDashBoardOptions/MintStreal";
 
 export default function DashboardNew() {
   const collateralBtns = [{ name: "USDC" }, { name: "DAI" }, { name: "USDT" }];
 
   const [selectedHeader, setSelectedHeader] = useState("MINT STREAL");
   return (
-    <div className="w-full h-screen bg-[#F6F6F6]">
+    <div className="w-full h-fit bg-[#F6F6F6]">
       <UserDashboardNew></UserDashboardNew>
       <div className="  ">
         {" "}
@@ -23,8 +24,17 @@ export default function DashboardNew() {
               return (
                 <button
                   key={index}
-                  className="flex w-[90px] text-[0.8rem] border-b-[3px] border-black justify-center"
+                  className={`flex w-[80px] tracking-tight text-[12px] font-normal items-center  rounded-full  p-1  gap-x-[4px]`}
                 >
+                  <div
+                    className={`w-[15px] h-[15px] bg-black rounded-[4px] flex items-center justify-center`}
+                  >
+                    <div
+                      className={`${
+                        index === 0 ? "opacity-1" : "opacity-0"
+                      } duration-300 w-[7px] h-[7px] rounded-full bg-spiceOrange`}
+                    ></div>
+                  </div>{" "}
                   {item.name}
                 </button>
               );
@@ -32,6 +42,9 @@ export default function DashboardNew() {
           </div>
           <div className="text-[0.8rem] text-lightGray mt-[9px]">
             Please Select your Preferred Collateral Currency.
+          </div>
+          <div className="mt-[51px] pb-[60px]">
+            <MintStreal></MintStreal>
           </div>
         </div>
       </div>

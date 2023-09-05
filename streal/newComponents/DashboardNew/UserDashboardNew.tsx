@@ -7,7 +7,7 @@ export default function UserDashboardNew() {
   const { web3Provider, _CONNECT_WALLET, _DISCONNECT_WALLET, address } =
     useWeb3();
   return (
-    <div className="h-[380px] bg-[#231F20] w-full relative font-manropeLight flex items-center justify-center">
+    <div className="h-[380px] bg-[#1B1B1B] w-full relative font-manropeLight flex items-center justify-center">
       <Image
         alt="arrow"
         src={dashboardArrow.src}
