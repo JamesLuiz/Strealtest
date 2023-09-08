@@ -32,7 +32,7 @@ export default function Web3ModalNew(props: Web3ModalNewProps) {
         {" "}
         <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
       </div>
-      <Web3Button></Web3Button>
+      {/*       <Web3Button></Web3Button> */}
     </>
   );
 }

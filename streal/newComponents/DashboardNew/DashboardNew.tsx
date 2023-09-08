@@ -10,7 +10,11 @@ import CollateralAccountDisplay from "./CollateralAccountDisplay";
 import RedeemCollateral from "../UserDashBoardOptions/RedeemCollateral";
 
 export default function DashboardNew() {
-  const collateralBtns = [{ name: "USDC" }, { name: "DAI" }, { name: "USDT" }];
+  const [collateralBtns, setCollateralBtns] = useState([
+    { name: "USDC", selected: true },
+    { name: "DAI", selected: false },
+    { name: "USDT", selected: false },
+  ]);
 
   const [selectedHeader, setSelectedHeader] = useState("MINT STREAL");
 
@@ -35,6 +39,17 @@ export default function DashboardNew() {
               return (
                 <button
                   key={index}
+                  onClick={() => {
+                    setCollateralBtns((prev) => {
+                      return prev.map((btns) => {
+                        if (btns.name === item.name) {
+                          return { ...btns, selected: true };
+                        } else {
+                          return { ...btns, selected: false };
+                        }
+                      });
+                    });
+                  }}
                   className={`flex w-[80px] tracking-tight text-[12px] font-normal items-center  rounded-full  p-1  gap-x-[4px]`}
                 >
                   <div
@@ -42,8 +57,8 @@ export default function DashboardNew() {
                   >
                     <div
                       className={`${
-                        index === 0 ? "opacity-1" : "opacity-0"
-                      } duration-300 w-[7px] h-[7px] rounded-full bg-spiceOrange`}
+                        item.selected ? "opacity-1" : "opacity-0"
+                      } duration-300 w-[7px] h-[7px] rounded-full bg-spiceOrange duration-300`}
                     ></div>
                   </div>{" "}
                   {item.name}

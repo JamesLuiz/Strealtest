@@ -52,7 +52,7 @@ export default function CollateralAccountDisplay() {
             { val: USDT, name: "USDT" },
           ].map((item) => {
             if (item.name === collateralDisplayed) {
-              return <div>${item.val}</div>;
+              return <div key={item.name}>${item.val}</div>;
             }
           })}
         </div>
