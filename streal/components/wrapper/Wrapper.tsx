@@ -7,7 +7,7 @@ interface WrapperProps {
 }
 import { useContext } from "react";
 import { StrealContext } from "../../pages/indexData";
-import { useAccount, } from "wagmi";
+import { useAccount } from "wagmi";
 
 export default function Wrapper(props: WrapperProps) {
   const {
@@ -30,7 +30,7 @@ export default function Wrapper(props: WrapperProps) {
   }, [isConnected]);
 
   return (
-    <div className="wrapper">
+    <div className="wrapper overflow-x-hidden">
       <NavBar />
       {props.children}
     </div>

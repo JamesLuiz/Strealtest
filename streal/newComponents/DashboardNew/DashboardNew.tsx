@@ -5,17 +5,28 @@ import dashboardArrow from "../../public/newImages/dashboard/dashboard-arrow.svg
 import HeaderDashboard from "../DashboardComponents/HeaderDashboard";
 import { useState } from "react";
 import MintStreal from "../UserDashBoardOptions/MintStreal";
+import DepositStreal from "../UserDashBoardOptions/DepositToken";
+import CollateralAccountDisplay from "./CollateralAccountDisplay";
+import RedeemCollateral from "../UserDashBoardOptions/RedeemCollateral";
 
 export default function DashboardNew() {
   const collateralBtns = [{ name: "USDC" }, { name: "DAI" }, { name: "USDT" }];
 
   const [selectedHeader, setSelectedHeader] = useState("MINT STREAL");
+
+  const handleSetSelectedHeader = (input: string) => {
+    setSelectedHeader(input);
+  };
+
   return (
     <div className="w-full h-fit bg-[#F6F6F6]">
       <UserDashboardNew></UserDashboardNew>
       <div className="  ">
         {" "}
-        <HeaderDashboard></HeaderDashboard>
+        <HeaderDashboard
+          selectedHeader={selectedHeader}
+          handleSetSelectedHeader={handleSetSelectedHeader}
+        ></HeaderDashboard>
       </div>
       <div>
         <div className=" w-full px-[12vw] mx-auto mt-[40px]">
@@ -44,7 +55,27 @@ export default function DashboardNew() {
             Please Select your Preferred Collateral Currency.
           </div>
           <div className="mt-[51px] pb-[60px]">
-            <MintStreal></MintStreal>
+            <div
+              className={`${
+                selectedHeader === "MINT STREAL" ? "block" : "hidden"
+              }`}
+            >
+              <MintStreal></MintStreal>
+            </div>
+            <div
+              className={`${
+                selectedHeader === "DEPOSIT TOKEN" ? "block" : "hidden"
+              }`}
+            >
+              <DepositStreal></DepositStreal>
+            </div>
+            <div
+              className={`${
+                selectedHeader === "REDEEM COLLATERAL" ? "block" : "hidden"
+              }`}
+            >
+              <RedeemCollateral></RedeemCollateral>
+            </div>
           </div>
         </div>
       </div>

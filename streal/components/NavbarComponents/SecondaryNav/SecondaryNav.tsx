@@ -12,6 +12,7 @@ import { useWeb3 } from "../../../redux/auth/hooks";
 import { useDispatch } from "react-redux";
 import { StrealContext } from "../../../pages/indexData";
 import { useContext } from "react";
+import { Web3Button, useWeb3Modal } from "@web3modal/react";
 
 interface Props {
   mobileNavModal: boolean;
@@ -39,6 +40,7 @@ const SecondaryNav = ({
   } = useAccount();
 
   const strealData = useContext(StrealContext);
+  const { open, close } = useWeb3Modal();
 
   const { getUserData, data, connectWallet } = strealData;
 
@@ -51,8 +53,9 @@ const SecondaryNav = ({
       {!mobileNavModal && (
         <PrimaryButton
           onClick={() => {
-            _CONNECT_WALLET();
-            connectWallet();
+            open();
+
+            /*    connectWallet(); */
           }}
           /*  onClick={web3Provider ? _DISCONNECT_WALLET : _CONNECT_WALLET} */
           text={

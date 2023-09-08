@@ -5,6 +5,8 @@ import Image from "next/image";
 import NavInfoLinkContainer from "../NavInfoLinkContainer/NavInfoLinkContainer";
 import GlobalSettings from "../GlobalSettings/GlobalSettings";
 import DOTS from "../../../public/Images/dots.svg";
+import strealLogoWhite from "../../../public/newImages/globals/streal-logo-white.svg";
+
 
 interface Props {
   moreModal: boolean;
@@ -24,7 +26,14 @@ const PrimaryNav = ({
   return (
     <div className="primary--nav">
       <div className="">
-        <Link href="/">Streal</Link>
+        <Link href="/">
+          <Image
+            src={strealLogoWhite.src}
+            width={20}
+            height={20}
+            alt={"streal logo"}
+          ></Image>
+        </Link>
       </div>
 
       <div className="inner--list">

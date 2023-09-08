@@ -1,12 +1,14 @@
 import { BsArrowUpRightSquareFill } from "react-icons/bs";
 import { useState } from "react";
 
-export default function MintStreal() {
+export default function DepositStreal() {
   const [input, setInput] = useState("");
   return (
     <div className="w-full flex flex-col gap-y-[51px]">
       <div className="flex justify-between w-full  text-[16px] lg:text-[48px] border-b border-black pb-[10px] ">
-        <div className="lg:w-[350px] leading-none w-[95px]">AMOUNT TO MINT</div>
+        <div className="lg:w-[350px] leading-none w-[95px]">
+          AMOUNT TO DEPOSIT
+        </div>
         <div className=" lg:w-[20%] w-[40%] overflow-hidden relative">
           {" "}
           <input
@@ -36,7 +38,7 @@ export default function MintStreal() {
         </div>
       </div>
       <button className="group bg-black text-white w-fit flex items-center gap-x-[10px] p-2 px-10 rounded-[10px] text-[13px]">
-        MINT STREAL
+        DEPOSIT STREAL
         <BsArrowUpRightSquareFill
           color="white"
           className="fill-white group-hover:fill-spiceOrange duration-300"

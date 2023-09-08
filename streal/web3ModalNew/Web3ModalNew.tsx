@@ -28,7 +28,11 @@ export default function Web3ModalNew(props: Web3ModalNewProps) {
     <>
       <WagmiConfig config={wagmiConfig}>{props.children}</WagmiConfig>
 
-      <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+      <div className="absolute z-50 w-[80%] top-[40vh]">
+        {" "}
+        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+      </div>
+      <Web3Button></Web3Button>
     </>
   );
 }
