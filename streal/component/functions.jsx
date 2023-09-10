@@ -45,7 +45,7 @@ const functions = () => {
       totalDeposited,
       getBalance,
       // wallet connect button
-      walletConnect,
+      connectWallet,
 
     } = useContext(StrealContext);
 
