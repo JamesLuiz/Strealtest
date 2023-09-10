@@ -2,7 +2,7 @@
 import streal from "./Streal.json";
 import vault from './Vault.json';
 
-export const vaultAdddress = "0x285B84AcB1B237cE2d3a3bB6bf4997c0db63bd71"
+export const vaultAddress = "0x285B84AcB1B237cE2d3a3bB6bf4997c0db63bd71"
 export const vaultAbi = vault.abi;
 
 export const strealAddress = "0x04BFd6ebd5fb98131442DaF38CdECec7c76E9789";
