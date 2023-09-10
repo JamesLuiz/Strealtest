@@ -176,17 +176,17 @@ export const StrealProvider = ({ children }) => {
       if (!window.ethereum) return console.log("Install MetaMask");
       // if not connected, request connection
       if (window.ethereum.isConnected()) {
-        console.log("Who talks");
+      /*   console.log("Who talks"); */
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const address = await signer.getAddress();
-        console.log("sdsd", address);
+ /*        console.log("sdsd", address); */
 
         // fetch the contract using signer
         const contract = fetchContract(signer);
-        console.log("dfndsd", contract);
+/*         console.log("dfndsd", contract); */
         const token = await contract._collateralTokens(tokenIndex);
-        console.log("maybe", token);
+      /*   console.log("maybe", token); */
 
         setTokens(token);
       }
