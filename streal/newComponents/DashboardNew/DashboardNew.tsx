@@ -11,15 +11,24 @@ import RedeemCollateral from "../UserDashBoardOptions/RedeemCollateral";
 
 export default function DashboardNew() {
   const [collateralBtns, setCollateralBtns] = useState([
-    { name: "USDC", selected: true },
-    { name: "DAI", selected: false },
-    { name: "USDT", selected: false },
+    { name: "USDC", selected: true, index: 1 },
+    { name: "DAI", selected: false, index: 2 },
+    { name: "USDT", selected: false, index: 0 },
   ]);
 
   const [selectedHeader, setSelectedHeader] = useState("MINT STREAL");
 
   const handleSetSelectedHeader = (input: string) => {
     setSelectedHeader(input);
+  };
+
+  const selectedBtn = () => {
+    const data = collateralBtns.filter((item) => {
+      if (item.selected) {
+        return item.name;
+      }
+    });
+    return { name: data[0].name, index: data[0].index };
   };
 
   return (
@@ -75,7 +84,10 @@ export default function DashboardNew() {
                 selectedHeader === "MINT STREAL" ? "block" : "hidden"
               }`}
             >
-              <MintStreal></MintStreal>
+              <MintStreal
+                selected={selectedBtn().name}
+                selectedIndex={selectedBtn().index}
+              ></MintStreal>
             </div>
             <div
               className={`${

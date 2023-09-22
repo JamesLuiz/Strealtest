@@ -4,11 +4,16 @@ import { useContext } from "react";
 import { useAccount } from "wagmi";
 import { StrealContext } from "../../pages/indexData";
 
-export default function MintStreal() {
+interface mintStrealProps {
+  selected: string;
+  selectedIndex: number;
+}
+
+export default function MintStreal(props: mintStrealProps) {
   const [collateral, setCollateral] = useState(0);
   const [streal, setStreal] = useState(0);
   const { address } = useAccount();
-  const { depositCollateralAndMintStreal, Token, getToken } =
+  const { depositCollateralAndMintStreal, Token, getToken, returnAountToMint } =
     useContext(StrealContext);
   console.log("t for token", Token);
   /*   const handleMint = ()=>{
@@ -62,8 +67,14 @@ export default function MintStreal() {
         </div>
       </div>
       <button
-        onClick={() => {
-          getToken();
+        onClick={async () => {
+          const tokenAddress = await getToken(props.selectedIndex);
+          if (tokenAddress) {
+            /*  returnAountToMint(token, 40); */
+            console.log(
+              depositCollateralAndMintStreal(tokenAddress, address, 40)
+            );
+          }
         }}
         className="group bg-black text-white w-fit flex items-center gap-x-[10px] p-2 px-10 rounded-[10px] text-[13px]"
       >

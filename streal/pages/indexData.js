@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useContext, useLayoutEffect } from "react";
 
 import { ethers } from "ethers";
-import { strealAddress, strealAbi, vaultAddress, vaultAbi} from "../../context/constant";
+import {
+  strealAddress,
+  strealAbi,
+  vaultAddress,
+  vaultAbi,
+} from "../../context/constant";
 
 const fetchContract = (signerOrProvider) =>
   new ethers.Contract(strealAddress, strealAbi, signerOrProvider);
@@ -30,73 +35,69 @@ export const StrealProvider = ({ children }) => {
     try {
       // if not connected, request connection
       if (!window.ethereum.isConnected()) {
-        console.log("install metamask")
-     } 
-      await window.ethereum.request({ method: 'eth_requestAccounts' })
+        console.log("install metamask");
+      }
+      await window.ethereum.request({ method: "eth_requestAccounts" });
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
 
       // set the account in state
       setAccounts(address);
-      
+
       // fetch the contract using signer
       const contract = fetchContract(signer);
-      
+
       // here the name of the contract is fetched (assuming contract has a public `name` method)
-      const contractName = await contract.name(); 
-      setName(contractName);  
+      const contractName = await contract.name();
+      setName(contractName);
 
       const tokenBalance = await contract.balanceOf(address);
-      const convert = tokenBalance/1e18;
+      const convert = tokenBalance / 1e18;
       setBalance(convert);
 
       const xyz = await contract.symbol();
       setSymbol(xyz);
 
       const airdropBalance = await contract.airdrops();
-      const math = airdropBalance/1e18;
+      const math = airdropBalance / 1e18;
       setAirdrop(math);
 
-      const supply = await contract.totalSupply()
-      let returnData = supply/1e18;
+      const supply = await contract.totalSupply();
+      let returnData = supply / 1e18;
       setTotalSupply(returnData);
 
       // usdc balance
-      const collateralDeposit = await contract.balance()
+      const collateralDeposit = await contract.balance();
       setCollateralBalance([collateralDeposit].toString());
-      const collatera_1 = collateralDeposit[1]/1e6;
+      const collatera_1 = collateralDeposit[1] / 1e6;
       setUSDC(collatera_1);
 
       // usdt balance
-      const collateral_2 = collateralDeposit[0]/1e6;
+      const collateral_2 = collateralDeposit[0] / 1e6;
       setUSDT(collateral_2);
 
       // DAI balance
-      const collateral_3 = collateralDeposit[2]/1e18;
+      const collateral_3 = collateralDeposit[2] / 1e18;
       setDAI(collateral_3);
-      
-      
     } catch (error) {
       console.error("Failed to connect wallet and fetch contract", error);
     }
   };
 
-
   useLayoutEffect(() => {
     // listening for account change
-    window.ethereum.on('accountsChanged', () => {
+    window.ethereum.on("accountsChanged", () => {
       if (window.ethereum.isConnected()) {
-        setAccounts(data)
+        setAccounts(data);
       } else {
         connectWallet();
       }
-      
-    })
-  }); 
+    });
+  });
 
   //-----> votes this function handles the vote counts
-  const [voteData, setVoteData] = useState("")
+  const [voteData, setVoteData] = useState("");
   const getVotes = async (_address) => {
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
@@ -173,19 +174,21 @@ export const StrealProvider = ({ children }) => {
       if (!window.ethereum) return console.log("Install MetaMask");
       // if not connected, request connection
       if (window.ethereum.isConnected()) {
-      /*   console.log("Who talks"); */
+        /*   console.log("Who talks"); */
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const address = await signer.getAddress();
- /*        console.log("sdsd", address); */
+        /*        console.log("sdsd", address); */
 
         // fetch the contract using signer
         const contract = fetchContract(signer);
-/*         console.log("dfndsd", contract); */
+        /*         console.log("dfndsd", contract); */
         const token = await contract._collateralTokens(tokenIndex);
-      /*   console.log("maybe", token); */
+        console.log(token);
+        /*   console.log("maybe", token); */
 
         setTokens(token);
+        return token;
       }
     } catch (error) {
       console.error("could not get supported token, check your implementaion");
@@ -284,7 +287,8 @@ export const StrealProvider = ({ children }) => {
           TokenAddress,
           amountTomint
         );
-        setCollateralAddress(data);
+        console.log(data, "mint data");
+        /*      setCollateralAddress(data); */
       }
     } catch (error) {
       console.error("could not fetch amountEquivalent");
@@ -953,30 +957,26 @@ export const StrealProvider = ({ children }) => {
   };
 
   //----> this function sets time to redeem collateral, airdrops
-  const setAirdropTime = async(airdropTime, depositeTime) => {
-    
+  const setAirdropTime = async (airdropTime, depositeTime) => {
     try {
       if (!window.ethereum) return console.log("Install MetaMask");
       // if not connected, request connection
       if (window.ethereum.isConnected()) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      console.log(address)
-      
-      // fetch the contract using signer
-      const contract = fetchContract(signer);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        console.log(address);
 
-      // call the approve function
-      await contract.setAirdropLockTime(airdropTime, depositeTime);
-      
-    }  
+        // fetch the contract using signer
+        const contract = fetchContract(signer);
+
+        // call the approve function
+        await contract.setAirdropLockTime(airdropTime, depositeTime);
+      }
     } catch (error) {
       console.error("could not set time, you're not the owner!");
     }
-    
-   
-  }
+  };
 
   const setStrealValue = async (value) => {
     try {
